@@ -1,3 +1,8 @@
+"---  g:NeosnippetSnippets_CommentLine()  --------------------------------------
+" こういうのを作る。
+" #=========...
+" #  title
+" #=========...
 function! g:NeosnippetSnippets_CommentLine() abort
     let maxColumn = 80
     let commentStr = split(split(tcomment#GuessCommentType().commentstring, ' ')[0], '%s')[0]
@@ -16,6 +21,9 @@ function! g:NeosnippetSnippets_CommentLine() abort
     return join([commentLine, title, commentLine], "\n")
 endfunction
 
+"---  g:NeosnippetSnippets_SubCommentLine()  -----------------------------------
+" こういうのを作る。
+" #---  title  ---...
 function! g:NeosnippetSnippets_SubCommentLine() abort
     let maxColumn = 80
     let commentStr = split(split(tcomment#GuessCommentType().commentstring, ' ')[0], '%s')[0]
