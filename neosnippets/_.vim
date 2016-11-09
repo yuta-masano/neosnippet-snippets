@@ -1,6 +1,6 @@
 function! g:NeosnippetSnippets_CommentLine() abort
     let maxColumn = 80
-    let commentStr = split(tcomment#GuessCommentType().commentstring, ' ')[0]
+    let commentStr = split(split(tcomment#GuessCommentType().commentstring, ' ')[0], '%s')[0]
 
     let i = 0
     let line = ''
@@ -18,7 +18,7 @@ endfunction
 
 function! g:NeosnippetSnippets_SubCommentLine() abort
     let maxColumn = 80
-    let commentStr = split(tcomment#GuessCommentType().commentstring, ' ')[0]
+    let commentStr = split(split(tcomment#GuessCommentType().commentstring, ' ')[0], '%s')[0]
 
     let head = join([commentStr, '---', '  '], '')
 
