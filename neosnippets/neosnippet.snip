@@ -3,8 +3,9 @@ abbr snippet abbr options <snippet code>
 alias snip
     snippet ${1:#:trigger}
     abbr ${2:#:abbr}
-    options word
-        ${3:#:TARGET}
+    alias ${3:#:alias}
+    options ${4:#:head}
+        ${5:#:TARGET}
 
 snippet include
 abbr include *.snip
