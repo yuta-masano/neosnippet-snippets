@@ -1,104 +1,565 @@
 source go.vim
 
-snippet     helloworld
-abbr        package main\nimport fmt...
-options     head
-  package main
+#===============================================================================
+#  skeleton
+#===============================================================================
+snippet helloworld
+abbr package main\nimport fmt...
+    package main
 
-  import (
-    "fmt"
-  )
+    import (
+        "fmt"
+    )
 
-  func main() {
-    fmt.Printf("Hello, world\n")
-  }
-
-snippet     func
-abbr        func ...() { ... }
-options     head
-  func ${1:fname}(${2}) ${3:int }{
-    ${0:TARGET:return }
-  }
-
-snippet     import
-options     head
-  import (
-    "${1:fmt}"
-  )
-  ${0:TARGET}
-
-snippet     package
-options     head
-  package ${1:main}
-  ${0:TARGET}
-
-snippet     printf
-alias pf
-options     head
-  fmt.Printf("${1}\n"${2:})
-
-snippet     println
-alias pl
-options     head
-  fmt.Println(${0:TARGET})
-
-snippet     struct
-options     head
-  type ${1} struct {
-    ${0:TARGET}
-  }
-
-snippet     interface
-options     head
-  type ${1} interface {
-    ${0:TARGET}
-  }
-
-snippet     for
-options     head
-  for ${1} {
-    ${0:TARGET}
-  }
-
-snippet     range
-abbr        for range
-options     head
-  for ${1:v} := range ${2:#:iterator} {
-    ${0:TARGET}
-  }
-
-snippet     if
-options     head
-    if ${1:#:condition} {
-      ${0:TARGET}
+    func main() {
+        fmt.Printf("Hello, world\n")
+        ${0}
     }
 
-snippet     iferr
-alias       ife
-options     head
+snippet closure
+abbr colusure sample
+    func testClosure1() {
+        x := 1
+        fn := func() { // 関数リテラル（匿名関数）を宣言。
+            fmt.Println("x is ", x) // 関数リテラル（匿名関数）は外側の変数を、引数として受け取ることなく共有できる。
+        }
+
+        fn() // 1
+        x++
+        fn() // 2
+    }
+
+    func intSeq() func() int {
+        i := 0 // 宣言時に 1 度だけ処理される。コンストラクタ的な領域。
+        return func() int {
+            i++ // 関数リテラル（匿名関数）は外側の変数を、引数として受け取ることなく共有できる。
+            return i
+        }
+    }
+
+    func testClosure2() {
+        fn := intSeq()    // 関数リテラル（匿名関数）を返す関数を宣言。1 度だけコンストラクタ的な領域を経て、関数リテラル（匿名関数）を返す。
+        fmt.Println(fn()) // 1 -- 関数リテラル（匿名関数）の外側で宣言された変数はアクセス可能である限り保持される。
+        fmt.Println(fn()) // 2
+
+        newFn := intSeq()
+        fmt.Println(newFn()) // 1
+    }
+
+#===============================================================================
+#  declaration
+#===============================================================================
+snippet package
+    package ${1:main}
+
+    ${0}
+
+snippet import
+abbr import (...)
+    import (
+        "${1:fmt}"
+        ${0}
+    )
+
+snippet var
+abbr var ...
+    var ${1:name} ${2:Type}${3: = ${4:value\}}
+    ${0}
+
+snippet vars
+abbr var ( ... )
+    var (
+        ${1:name} ${2:Type}${3: = ${4:value\}}
+        ${0}
+    )
+
+snippet const
+abbr const ... // bool, rune, int, float, imaginary, str
+    const ${1:name} ${2:#:Type} = ${3:value}
+    ${0}
+
+snippet consts
+abbr const (...) // bool, rune, int, float, imaginary, str
+    const (
+        ${1:name} ${2:#:Type} = ${3:value}
+        ${0}
+    )
+
+snippet iota
+abbr const ( ... = iota )
+    type ${1:name} ${2:Type}
+
+    const (
+        ${3:_} $1 = iota
+        ${0}
+    )
+
+snippet struct
+abbr type T struct { ... }
+    type ${1:name} struct {
+        ${2:field}
+        ${0}
+    }
+
+snippet struct_New
+abbr func NewT() *T { ... }
+    `g:NeosnippetSnippets_GoNewStrut('New')`
+
+snippet struct_new
+abbr func newT() *T { ... }
+    `g:NeosnippetSnippets_GoNewStrut('new')`
+
+snippet method
+abbr func (method receiver) name( ... ) ... { ... }
+    func `g:NeosnippetSnippets_GoMethodReceiver()` ${1:name}(${2:#:params}) ${3:#:return_params} {
+        ${0:TARGET}
+        ${4:#:retufn}
+    }
+
+snippet func
+abbr func name(x,y int, fn func(Type) Type, ... ) { ... }
+    func ${1:name}(${2:#:params}) {
+        ${0:TARGET}
+    }
+
+snippet func_return
+abbr func name(x,y int, fn func(Type) Type, ... ) return_params { ... }
+    func ${1:name}(${2:#:params}) ${3:(Type, error)} {
+        ${0:TARGET}
+        return
+    }
+
+snippet func_anonymous
+abbr execute anonymous function
+options word
+    func(${1:#:params}) ${2:#:(Type, Type, ...)} {
+        ${0:TARGET}
+        ${4:#:return}
+    }(${3:#:args})
+
+#===============================================================================
+#  function
+#===============================================================================
+snippet printf
+alias pf
+  fmt.Printf("${1}\n"${2:})
+
+snippet println
+alias pl
+  fmt.Println(${0:TARGET})
+
+snippet ddump
+abbr dd
+   spew.Dump(${0:TARGET})
+
+snippet df
+abbr defer someFunction()
+    defer ${1:name}(${2:#:args})
+    ${0}
+
+snippet def
+abbr defer func() { ... }
+    defer func() {
+        ${0}
+    }()
+
+#===============================================================================
+#  control structure
+#===============================================================================
+snippet iferr
     if err != nil {
       return `g:NeosnippetSnippets_Goiferr()`
     }
     ${2}
 
-snippet     switch
-abbr        switch {}
-options     head
-  switch ${1:#:v} {
-  case ${2:#:condition}:
-    ${0:TARGET}
-  }
 
-snippet     select
-abbr        select {}
-options     head
-  select {
-  case ${1:#:condition}:
-    ${0:TARGET}
-  }
+#
+# snippet     struct
+# options     head
+#   type ${1} struct {
+#     ${0:TARGET}
+#   }
+#
+# snippet     interface
+# options     head
+#   type ${1} interface {
+#     ${0:TARGET}
+#   }
+#
+# snippet     for
+# options     head
+#   for ${1} {
+#     ${0:TARGET}
+#   }
+#
+# snippet     range
+# abbr        for range
+# options     head
+#   for ${1:v} := range ${2:#:iterator} {
+#     ${0:TARGET}
+#   }
+#
+# snippet     if
+# options     head
+#     if ${1:#:condition} {
+#       ${0:TARGET}
+#     }
+#
+# snippet     switch
+# abbr        switch {}
+# options     head
+#   switch ${1:#:v} {
+#   case ${2:#:condition}:
+#     ${0:TARGET}
+#   }
+#
+# snippet     select
+# abbr        select {}
+# options     head
+#   select {
+#   case ${1:#:condition}:
+#     ${0:TARGET}
+#   }
+#
+# snippet     case
+# options     head
+#   case ${1:#:condition}:
+#     ${2:TARGET}
 
-snippet     case
-options     head
-  case ${1:#:condition}:
-    ${2:TARGET}
-
+#===============================================================================
+#  vim-go
+#===============================================================================
+# # shorthand variable declaration
+# snippet :
+# abbr v := value
+#     ${1} := ${0}
+# # anonymous function
+# snippet anon
+# abbr fn := func() { ... }
+#     ${1:fn} := func() {
+#         ${0}
+#     }
+# # append
+# snippet ap
+# abbr append(slice, value)
+#     append(${1:slice}, ${0:value})
+# # append assign
+# snippet ap=
+# abbr slice = append(slice, value)
+#   ${1:slice} = append($1, ${0:value})
+# # break
+# snippet br
+# abbr break
+#     break
+# # channel
+# snippet ch
+# abbr chan Type
+#     chan ${0:int}
+# # case
+# snippet case
+# abbr case ...:
+#     case ${1:value}:
+#         ${0}
+# # constant
+# snippet con
+# abbr const XXX Type = ...
+#     const ${1:NAME} ${2:Type} = ${0:0}
+# # constants
+# snippet cons
+# abbr const ( ... )
+#     const (
+#         ${1:NAME} ${2:Type} = ${3:value}
+#         ${0}
+#     )
+# # constants with iota
+# snippet iota
+# abbr const ( ... = iota )
+#     const (
+#         ${1:NAME} ${2:Type} = iota
+#         ${0}
+#     )
+# # continue
+# snippet cn
+# abbr continue
+#     continue
+# # default case
+# snippet default
+# abbr default: ...
+#     default:
+#         ${0}
+#
+# # gpl
+# snippet gpl
+#     /*
+#      * This program is free software; you can redistribute it and/or modify
+#      * it under the terms of the GNU General Public License as published by
+#      * the Free Software Foundation; either version 2 of the License, or
+#      * (at your option) any later version.
+#      *
+#      * This program is distributed in the hope that it will be useful,
+#      * but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      * GNU General Public License for more details.
+#      *
+#      * You should have received a copy of the GNU General Public License
+#      * along with this program; if not, see <http://www.gnu.org/licenses/>.
+#      *
+#      * Copyright (C) ${1:Author}, `strftime("%Y")`
+#      */
+#
+#     ${0}
+# # import
+# snippet import
+# abbr import ( ... )
+#     import (
+#         "${1:package}"
+#     )
+# # full interface snippet
+# snippet interface
+# abbr interface I { ... }
+#     type ${1:Interface} interface {
+#         ${2:/* TODO: add methods */}
+#     }
+# # if condition
+# snippet if
+# abbr if ... { ... }
+#     if ${1:condition} {
+#         ${0}
+#     }
+# # else snippet
+# abbr else { ... }
+# snippet else
+#     else {
+#         ${0}
+#     }
+# # error snippet
+# snippet errn
+# abbr if err != nil { ... }
+#     if err != nil {
+#         return err
+#     }
+#     ${0}
+# # error snippet in TestFunc
+# snippet errt
+# abbr if err != nil { ... }
+#     if err != nil {
+#         t.Fatal(err)
+#     }
+#
+# # error snippet with two return values
+# snippet errn,
+# abbr if err != nil { return [...], err }
+#     if err != nil {
+#         return ${1:nil}, err
+#     }
+#     ${0}
+#
+# # error snippet handle and return
+# snippet errh
+# abbr if err != nil { return }
+#     if err != nil {
+#         ${1}
+#         return
+#     }
+#     ${0}
+#
+# # error snippet with panic
+# snippet errp
+# abbr if err != nil { ... }
+#     if err != nil {
+#         panic(${1})
+#     }
+#     ${0}
+#
+# # json snippet
+# snippet json
+# abbr \`json:key\`
+#     \`json:"${1:keyName}"\`
+#
+# # yaml snippet
+# snippet yaml
+# abbr \`yaml:key\`
+#     \`yaml:"${1:keyName}"\`
+#
+# # fallthrough
+# snippet ft
+# abbr fallthrough
+#     fallthrough
+# # for loop
+# snippet for
+# abbr for ... { ... }
+#     for ${1} {
+#         ${0}
+#     }
+# # for integer loop
+# snippet fori
+# abbr for 0..N-1 { ... }
+#     for ${1:i} := 0; $1 < ${2:N}; $1++ {
+#         ${0}
+#     }
+# # for range loop
+# snippet forr
+# abbr for k, v := range items { ... }
+#     for ${2:k}, ${3:v} := range ${1} {
+#         ${0}
+#     }
+# # function
+# snippet func
+# abbr func function(...) [error] { ... }
+#     func ${1:function}(${2}) ${3:error }{
+#         ${0}
+#     }
+# # Fmt Printf debug
+# snippet ff
+# abbr fmt.Printf(...)
+#     fmt.Printf("${1} = %+v\n", $1)
+#     ${0}
+# # Fmt Println debug
+# snippet fn
+# abbr fmt.Println(...)
+#     fmt.Println("${1}")
+# # log printf
+# snippet lf
+# abbr log.Printf(...)
+#     log.Printf("${1} = %+v\n", $1)
+# # log println
+# snippet ln
+# abbr log.Println(...)
+#     log.Println("${1}")
+# # make
+# snippet make
+# abbr make(Type, size)
+#     make(${1:[]string}, ${2:0})${0}
+# # map
+# snippet map
+# abbr map[Type]Type
+#     map[${1:string}]${0:int}
+# # main()
+# snippet main
+# abbr func main() { ... }
+# options head
+#     func main() {
+#         ${0}
+#     }
+# # method
+# snippet meth
+# abbr func (self Type) Method(...) [error] { ... }
+# regexp /^meth/
+#     func (${1:self} ${2:Type}) ${3:Do}(${4}) ${5:error }{
+#         ${0}
+#     }
+# # ok
+# snippet ok
+# abbr if !ok { ... }
+#     if !ok {
+#         ${0}
+#     }
+# # panic
+# snippet panic
+# alias pn
+# abbr panic("...")
+#     panic("${0}")
+# # return
+# snippet return
+# alias rt
+# abbr return ...
+#     return ${0}
+# # select
+# snippet select
+# abbr select { case a := <-chan: ... }
+#     select {
+#     case ${1:v1} := <-${2:chan1}
+#         ${0}
+#     }
+# # switch
+# snippet switch
+# abbr switch x { ... }
+#     switch ${1:var} {
+#     case ${2:value1}:
+#         ${0}
+#     }
+# # sprintf
+# snippet sp
+# abbr fmt.Sprintf(...)
+#     fmt.Sprintf("%${1:s}", ${2:var})
+# # goroutine named function
+# snippet go
+# abbr go someFunc(...)
+#     go ${1:funcName}(${0})
+# # goroutine anonymous function
+# snippet gof
+# abbr go func(...) { ... }(...)
+#     go func(${1}) {
+#         ${3:/* TODO */}
+#     }(${2})
+# # test function
+# snippet test
+# abbr func TestXYZ(t *testing.T) { ... }
+#     func Test${1:Function}(t *testing.T) {
+#         ${0}
+#     }
+# # test server
+# snippet tsrv
+# abbr ts := httptest.NewServer(...)
+#   ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+#     fmt.Fprintln(w, ${1:`response`})
+#   }))
+#   defer ts.Close()
+#
+#   //Use testing server url (type string) somewhere
+#   ${0:someUrl} = ts.URL
+# # test error
+# snippet ter
+# abbr if err != nil { t.Errorf(...) }
+#   if err != nil {
+#     t.Errorf("${1}")
+#   }
+# # test fatal error
+# snippet terf
+# abbr if err != nil { t.Fatalf(...) }
+#   if err != nil {
+#     t.Fatalf("${1}")
+#   }
+# # test example
+# snippet example
+#     func Example${1:Method}() {
+#         ${0}
+#         // Output:
+#     }
+# # test benchmark
+# snippet benchmark
+#     func Benchmark${1:Method}(b *testing.B) {
+#         for i := 0; i < b.N; i++ {
+#             ${0}
+#         }
+#     }
+# # variable declaration
+# snippet var
+# abbr var x Type [= ...]
+#     var ${1:x} ${2:Type}${3: = ${0:value\}}
+# # variables declaration
+# snippet vars
+# abbr var ( ... )
+#     var (
+#         ${1:x} ${2:Type}${3: = ${0:value\}}
+#     )
+# # equals fails the test if exp is not equal to act.
+# snippet eq
+# abbr equals: test two identifiers with DeepEqual
+#   if !reflect.DeepEqual(${1:expected}, ${2:actual}) {
+#       _, file, line, _ := runtime.Caller(0)
+#       fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, $1, $2)
+#       t.FailNow()
+#   }
+#
+# snippet hf
+# abbr http.HandlerFunc
+#   func ${1:handler}(w http.ResponseWriter, r *http.Request) {
+#     ${0:fmt.Fprintf(w, "hello world")}
+#   }
+#
+# snippet hhf
+# abbr mux.HandleFunc(...)
+#   ${1:http}.HandleFunc("${2:/}", func(w http.ResponseWriter, r *http.Request) {
+#     ${0:fmt.Fprintf(w, "hello world")}
+#   })

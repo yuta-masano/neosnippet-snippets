@@ -1,4 +1,3 @@
-"---  g:NeosnippetSnippets_Goiferr()  ------------------------------------------
 " From http://pocke.hatenablog.com/entry/2015/12/20/133445
 " error チェックスニペット。
 function! g:NeosnippetSnippets_Goiferr() abort
@@ -50,7 +49,28 @@ function! g:NeosnippetSnippets_Goiferr() abort
     return '${1:' . join(rets, ", ") . '}'
 endfunction
 
-"---  g:NeosnippetSnippets_GoStrut()  ------------------------------------------
-" 構造体とその構造体を new するメソッドを作成する。
-function! g:NeosnippetSnippets_GoStrut() abort
+" 構造体を new するメソッドを作成する。
+function! g:NeosnippetSnippets_GoNewStrut(new) abort
+    let name = input('struct name > ')
+    let newName = a:new . toupper(name[0]) . name[1:]
+
+    let newHead = 'func ' . newName . '() *' . name . ' {'
+    let newBody = tolower(name[0]) . ' := new(' . name . ')' . "\n" . 'return ' . tolower(name[0])
+    let newTail = '}'
+
+    return join([newHead, newBody, newTail], "\n")
 endfunction
+
+" メソッドレシーバを返す。
+function! g:NeosnippetSnippets_GoMethodReceiver() abort
+    let name = input('struct name > ')
+    if name[0] == '*'
+        let receiver = tolower(name[1])
+    else
+        let receiver = tolower(name[0])
+    endif
+
+    return join(['(', receiver . ' ', name, ')'], '')
+endfunction
+
+
