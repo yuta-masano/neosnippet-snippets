@@ -1,4 +1,3 @@
-"---  g:NeosnippetSnippets_CommentLine()  --------------------------------------
 " こういうのを作る。
 " #=========...
 " #  title
@@ -21,7 +20,6 @@ function! g:NeosnippetSnippets_CommentLine() abort
     return join([commentLine, title, commentLine], "\n")
 endfunction
 
-"---  g:NeosnippetSnippets_SubCommentLine()  -----------------------------------
 " こういうのを作る。
 " #---  title  ---...
 function! g:NeosnippetSnippets_SubCommentLine() abort
