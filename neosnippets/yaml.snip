@@ -1,0 +1,89 @@
+#===============================================================================
+#  Top
+#===============================================================================
+snippet hosts
+    ${1:---}
+    - hosts: ${2:#:target host list}
+      become: yes
+      gather_facts: no
+      tasks:
+      ${0}
+
+snippet vars_prompt
+    vars_prompt:
+        - name: ${1:#:var_name}
+          prompt: ${2:#:message}
+          default: ${3:#:default value}
+          private: ${4:#:yes | no}
+    ${0}
+
+snippet variable
+alias {}
+options word
+    {{ ${1:var} }}${0}
+
+#===============================================================================
+#  Module
+#===============================================================================
+snippet name
+    - name: yaml.snip | ${1:#:description}
+      ${0}
+
+snippet service
+    service:
+        name: ${1:#:service name}
+        state: ${2:#:started | stopped | restarted | reloaded}
+        enabled: ${3:#:yes | no}
+    ${0}
+
+snippet command
+abbr $HOME, <, >, ;, |, & do not work!
+    command:
+        ${1:#:command}
+    args:
+        chdir: ${2:#:psth} # $2 でコマンドを実行
+        creates: ${3:#:psth} # $3 があったらスキップ
+        removes: ${4:#:psth} # $4 がなかったらスキップ
+    ${0}
+
+snippet shell
+    shell: |-
+    args:
+        chdir: ${2:#:psth} # $2 でコマンドを実行
+        creates: ${3:#:psth} # $3 があったらスキップ
+        removes: ${4:#:psth} # $4 がなかったらスキップ
+    ${0}
+
+snippet confirm
+    - name: confirm
+      pause:
+        prompt: ${1:#:message}
+      register: ${2:ret}
+    ${0}
+
+#===============================================================================
+#  Loop
+#===============================================================================
+snippet with_items
+      with_items:
+        - ${1:#:item}
+        ${0}
+
+#===============================================================================
+#  Conventional Code
+#===============================================================================
+snippet reboot
+abbr reboot tasks
+    - name: サーバを再起動
+      command:
+        reboot
+
+    - name: サーバが起動完了するまで（無理矢理）待機
+      command:
+        ssh {{ inventory_hostname }} 'exit'
+      register: ret
+      until: ret.rc == 0
+      retries: 30
+      delay: 10
+      delegate_to: 127.0.0.1
+      become: no
