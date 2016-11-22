@@ -1,3 +1,6 @@
+snippet var_dump
+    var_dump('$1', $${1:var});
+
 snippet function
 abbr public function () {}
 	${1:public }function ${2:#:FunctionName}(${3})
@@ -163,10 +166,6 @@ options head
 	if (${1:#:condition}) {
 		${0:TARGET}
 	}
-
-snippet var_dump
-options head
-  var_dump(${0:TARGET});
 
 snippet p
 options head
