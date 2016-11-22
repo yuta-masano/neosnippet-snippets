@@ -1,7 +1,7 @@
 source go.vim
 
 #===============================================================================
-#  skeleton
+#  Conventional Code
 #===============================================================================
 snippet helloworld
 abbr package main\nimport fmt...
@@ -46,8 +46,35 @@ abbr colusure sample
         fmt.Println(newFn()) // 1
     }
 
+snippet recursive_anonymous
+abbr 匿名関数で再帰
+    func testRecursiveAnonymous() {
+        var fact func(int) int
+        fact = func(x int) int { // fact := func(x int) int { ... }（省略変数宣言）はコンパイルエラーになる。
+            if x == 0 {
+                return 1
+            } else {
+                return x * fact(x - 1)
+            }
+        }
+        fmt.Println(fact(10))
+    }
+
+snippet config_dir
+abbr .config ディレクトリを作成する
+	var configDir string
+	if runtime.GOOS == win {
+		configDir = filepath.Join(os.Getenv("APPDATA"), "${1:subDir}")
+	} else {
+		configDir = filepath.Join(os.Getenv("HOME"), ".config", "$1")
+	}
+    err = os.MkdirAll(configDir, ${2:0700})
+    if err != nil {
+        return err
+    }
+
 #===============================================================================
-#  declaration
+#  Declaration
 #===============================================================================
 snippet package
     package ${1:main}
@@ -63,13 +90,13 @@ abbr import (...)
 
 snippet var
 abbr var ...
-    var ${1:name} ${2:Type}${3: = ${4:value\}}
+    var ${1:name} ${2:Type} ${3:= ${4:value\}}
     ${0}
 
 snippet vars
 abbr var ( ... )
     var (
-        ${1:name} ${2:Type}${3: = ${4:value\}}
+        ${1:name} ${2:Type} ${3:= ${4:value\}}
         ${0}
     )
 
@@ -93,6 +120,16 @@ abbr const ( ... = iota )
         ${3:_} $1 = iota
         ${0}
     )
+
+snippet type
+    type ${1:name} ${2:Type}
+
+snippet interface
+abbr type I interface { ... }
+    type ${1:name} interface {
+        ${2:method_name} ${3:#:Type}
+        ${0}
+    }
 
 snippet struct
 abbr type T struct { ... }
@@ -137,8 +174,17 @@ options word
         ${4:#:return}
     }(${3:#:args})
 
+snippet :
+abbr short variable declaration
+    ${1} := ${0}
+
+snippet make_map
+abbr make returns reference type
+options word
+    ${1:var} := make(map[${2:Type}] ${3:TYPE})${4:#:{ key: value, key: value ... \}}
+
 #===============================================================================
-#  function
+#  Function
 #===============================================================================
 snippet printf
 alias pf
@@ -164,47 +210,30 @@ abbr defer func() { ... }
     }()
 
 #===============================================================================
-#  control structure
+#  Control Structure
 #===============================================================================
+snippet if
+    if ${1:#:initialization;} ${2:condition} {
+        ${0:TARGET}
+    }
+
 snippet iferr
     if err != nil {
       return `g:NeosnippetSnippets_Goiferr()`
     }
     ${2}
 
+snippet for
+    for ${1:#:initialization;} ${2:#:condition;} ${3:#:post} {
+        ${0:TARGET}
+    }
 
-#
-# snippet     struct
-# options     head
-#   type ${1} struct {
-#     ${0:TARGET}
-#   }
-#
-# snippet     interface
-# options     head
-#   type ${1} interface {
-#     ${0:TARGET}
-#   }
-#
-# snippet     for
-# options     head
-#   for ${1} {
-#     ${0:TARGET}
-#   }
-#
-# snippet     range
-# abbr        for range
-# options     head
-#   for ${1:v} := range ${2:#:iterator} {
-#     ${0:TARGET}
-#   }
-#
-# snippet     if
-# options     head
-#     if ${1:#:condition} {
-#       ${0:TARGET}
-#     }
-#
+snippet range
+abbr for range
+    for ${1:k ${2:, v\}} := range ${3:#:iterator} {
+        ${0:TARGET}
+    }
+
 # snippet     switch
 # abbr        switch {}
 # options     head
@@ -229,10 +258,6 @@ snippet iferr
 #===============================================================================
 #  vim-go
 #===============================================================================
-# # shorthand variable declaration
-# snippet :
-# abbr v := value
-#     ${1} := ${0}
 # # anonymous function
 # snippet anon
 # abbr fn := func() { ... }
@@ -308,12 +333,6 @@ snippet iferr
 #      */
 #
 #     ${0}
-# # import
-# snippet import
-# abbr import ( ... )
-#     import (
-#         "${1:package}"
-#     )
 # # full interface snippet
 # snippet interface
 # abbr interface I { ... }

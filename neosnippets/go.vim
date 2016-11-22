@@ -70,7 +70,5 @@ function! g:NeosnippetSnippets_GoMethodReceiver() abort
         let receiver = tolower(name[0])
     endif
 
-    return join(['(', receiver . ' ', name, ')'], '')
+    return '(' . receiver . ' ' . name . ')'
 endfunction
-
-
