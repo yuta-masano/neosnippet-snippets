@@ -54,12 +54,12 @@ alias fnamelc
 options word
     `substitute(bufname('%') ==#'[Command Line]' ? expand('#:t:r:r:r') : expand('%:t:r:r:r'), '\%(_\(.\)\)', '\u\1', 'g')`${0}
 
-snippet =
+snippet line
 abbr 80 comment line
     `g:NeosnippetSnippets_CommentLine()`
     ${0}
 
-snippet -
+snippet line_sub
 abbr 80 sub comment line
 options word
     `g:NeosnippetSnippets_SubCommentLine()`
