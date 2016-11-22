@@ -1,10 +1,910 @@
-snippet #!
-abbr #!/bin/sh
-alias shebang
-	#!/bin/${1:bash}
+# vim: set noexpandtab :
+
+# http://d.hatena.ne.jp/higher_tomorrow/20110504/1304472902
+# http://qiita.com/kawaz/items/211266021515b3f033a3
+# http://qiita.com/Ping/items/57fd75465dfada76e633#変数展開時の置換
+# http://qiita.com/ine1127/items/6e5fe80f4a9c64509558
+# http://www.m-bsys.com/linux/variable_expansion
+# https://open-groove.net/shell/summary-variables/
+
+#===============================================================================
+#  Conventional Code
+#===============================================================================
+# スクリプトの格納ディレクトリ取得は以下を参考にした。シンボリックリンクの場合は
+# 考慮しなくていいだろう。
+# [Can a Bash script tell which directory it is stored in? - Stack Overflow]
+# http://stackoverflow.com/questions/59895/can-a-bash-script-tell-which-directory-it-is-stored-in/246128#246128
+snippet shebang
+abbr #!/bin/bash ...
+	#!/bin/bash
+	#===============================================================================
+	#          FILE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')`
+	#
+	#         USAGE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')` [OPTION] [ACTION]
+	#
+	#   DESCRIPTION: ${0:---}
+	#
+	#       OPTIONS: -h, --help
+	#                    Print help and exit.
+	#                -m, --mode MODE
+	#                    Specify MODE.
+	#                ACTION
+	#                    Specify ACTION.
+	#
+	#  REQUIREMENTS: ---
+	#
+	#        AUTHOR: Yuta MASANO <masano@sraoss.co.jp>
+	#       CREATED: `strftime("%Y-%m-%d")`
+	#===============================================================================
+	# Fail on unset variables, command errors and pipe fail.
+	set -o nounset -o errexit -o pipefail
+
+	# Prevent commands misbehaving due to locale differences.
+	export LC_ALL=C LANG=C
+
+	#===============================================================================
+	#   GLOBAL DECLARATIONS
+	#===============================================================================
+	SCRIPT_NAME="${0##*/}"
+	SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+	#===============================================================================
+	#  FUNCTION DEFINITIONS
+	#===============================================================================
+	#---  FUNCTION  ----------------------------------------------------------------
+	#          NAME: print_usage_exit
+	#   DESCRIPTION: Print part of header in this file into stderror, and exit 1.
+	#    PARAMETERS: ---
+	#       RETURNS: 1
+	#-------------------------------------------------------------------------------
+	print_usage_exit()
+	{
+		printf '\n' >&2
+		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \$0 |
+			sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
+		printf '\n' >&2
+		exit 1
+	}    # ----------  end of print_usage_exit  ----------
+
+	#===============================================================================
+	#  MAIN SCRIPT
+	#===============================================================================
+	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@")"
+	if [ $? -ne 0 ]; then
+		print_usage_exit
+	fi
+
+	eval set -- "$args"
+	while true; do
+		case "\$1" in
+			-h | --help)
+				print_usage_exit
+				;;
+			-m | --mode)
+				mode="\$2"
+				shift 2
+				;;
+			--)
+				shift
+				break
+				;;
+			*)
+				print_usage_exit
+				;;
+		esac
+	done
+
+snippet shebang_well_behaved
+abbr #!/bin/bash ...
+	#!/bin/bash
+	#===============================================================================
+	#          FILE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')`
+	#
+	#         USAGE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')` [OPTION] [ACTION]
+	#
+	#   DESCRIPTION: ${0:---}
+	#
+	#       OPTIONS: -h, --help
+	#                    Print help and exit.
+	#                -m, --mode MODE
+	#                    Specify MODE.
+	#                ACTION
+	#                    Specify ACTION.
+	#
+	#  REQUIREMENTS: ---
+	#
+	#        AUTHOR: Yuta MASANO <masano@sraoss.co.jp>
+	#       CREATED: `strftime("%Y-%m-%d")`
+	#===============================================================================
+	# Fail on unset variables, command errors and pipe fail.
+	set -o nounset -o errexit -o pipefail
+
+	# Prevent commands misbehaving due to locale differences.
+	export LC_ALL=C LANG=C
+
+	#===============================================================================
+	#   GLOBAL DECLARATIONS
+	#===============================================================================
+	declare -rx SCRIPT_NAME="${0##*/}"
+	declare -rx SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	declare -rx mkdir='/bin/mkdir'
+
+	#===============================================================================
+	#   SANITY CHECKS
+	#===============================================================================
+	if [ -z "$BASH" ]; then
+		printf "$SCRIPT:$LINENO: run this script with the BASH shell\n" >&2
+		exit 192
+	fi
+
+	echo "$BASH_VERSION" |
+		grep --quiet --extended-regexp '[0-3]+\.[0-9]+\.[0-9]' && :
+	if [ $? -eq 0 ]; then
+		printf "$SCRIPT:$LINENO: BASH version must be >= 4.0.0\n" >&2
+		exit 192
+	fi
+
+	if [ ! -x "$mkdir" ]; then
+		printf "$SCRIPT:$LINENO: command '$mkdir' not available - aborting\n" >&2
+		exit 192
+	fi
+
+	#===============================================================================
+	#  FUNCTION DEFINITIONS
+	#===============================================================================
+	#---  FUNCTION  ----------------------------------------------------------------
+	#          NAME: print_usage_exit
+	#   DESCRIPTION: Print part of header in this file into stderror, and exit 1.
+	#    PARAMETERS: ---
+	#       RETURNS: 1
+	#-------------------------------------------------------------------------------
+	print_usage_exit()
+	{
+		printf '\n' >&2
+		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \$0 |
+			sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
+		printf '\n' >&2
+		exit 1
+	}    # ----------  end of print_usage_exit  ----------
+
+	#===============================================================================
+	#  MAIN SCRIPT
+	#===============================================================================
+	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@")"
+	if [ $? -ne 0 ]; then
+		print_usage_exit
+	fi
+
+	eval set -- "$args"
+	while true; do
+		case "\$1" in
+			-h | --help)
+				print_usage_exit
+				;;
+			-m | --mode)
+				mode="\$2"
+				shift 2
+				;;
+			--)
+				shift
+				break
+				;;
+			*)
+				print_usage_exit
+				;;
+		esac
+	done
+
+	#===============================================================================
+	#   STATISTICS / CLEANUP
+	#===============================================================================
+	exit 0
+
+snippet ifok
+abbr 直前のコマンドが成功することを期待
+	if [ $? -eq 0 ]; then
+		${0}
+	fi
+
+snippet iferr
+abbr 直前のコマンドが失敗することを期待
+	if [ $? -ne 0 ]; then
+		${0}
+	fi
+
+snippet force_success
+abbr 強制的に終了ステータスを 0 にする
+options word
+	|| :${0}
+
+snippet force_execute
+abbr コマンドが失敗しても errexit せずに進むが終了ステータスは取りたい
+options word
+	&& :${0}
+
+snippet basenames
+	${1:var}="${2:/path/to/file}"
+	basename=${$1##*/}
+	dirname=${$1%/*}
+	filename=${basename%%.*}
+	lastextension=${basename##*.}
+	allextensions=${basename#*.}
+	${0}
+
+snippet tmp
+	${1:TMPFILE}="$(mktemp --tmpdir=${2:/tmp} --suffix=".${3:${0##*/\}}")"
+	trap 'rm -f $2/tmp.*."$3"'         0        # EXIT
+	trap 'rm -f $2/tmp.*."$3"; exit 1' 1 2 3 15 # HUP QUIT INT TERM
+	${0}
+
+#===============================================================================
+#  Comment
+#===============================================================================
+snippet comment_global_declarations
+	#===============================================================================
+	#   GLOBAL DECLARATIONS
+	#===============================================================================
+	${0}
+
+snippet comment_command_line_processing
+	#===============================================================================
+	#   COMMAND LINE PROCESSING
+	#===============================================================================
+	${0}
+
+snippet comment_sanity_checks
+	#===============================================================================
+	#   SANITY CHECKS
+	#===============================================================================
+	${0}
+
+snippet comment_function_definitions
+	#===============================================================================
+	#   FUNCTION DEFINITIONS
+	#===============================================================================
+	${0}
+
+snippet comment_traps
+	#===============================================================================
+	#   TRAPS
+	#===============================================================================
+	${0}
+
+snippet comment_main_script
+	#===============================================================================
+	#   MAIN SCRIPT
+	#===============================================================================
+	${0}
+
+snippet comment_statistics_or_cleanup
+	#===============================================================================
+	#   STATISTICS / CLEAN-UP
+	#===============================================================================
 	${0}
 
 
+snippet comment_bug
+	#-------------------------------------------------------------------------------
+	# BUG
+	# `strftime("%Y-%m-%d")`
+	# Yuta MASANO <masano@sraoss.co.jp>
+	#
+	# ${0:#:description}
+	#-------------------------------------------------------------------------------
+
+snippet comment_todo
+	#-------------------------------------------------------------------------------
+	# TODO
+	# `strftime("%Y-%m-%d")`
+	# Yuta MASANO <masano@sraoss.co.jp>
+	#
+	# ${0:#:description}
+	#-------------------------------------------------------------------------------
+
+snippet comment_tricky
+	#-------------------------------------------------------------------------------
+	# TRICKY
+	# `strftime("%Y-%m-%d")`
+	# Yuta MASANO <masano@sraoss.co.jp>
+	#
+	# ${0:#:description}
+	#-------------------------------------------------------------------------------
+
+snippet comment_warning
+	#-------------------------------------------------------------------------------
+	# WARNING
+	# `strftime("%Y-%m-%d")`
+	# Yuta MASANO <masano@sraoss.co.jp>
+	#
+	# ${0:#:description}
+	#-------------------------------------------------------------------------------
+
+snippet comment_workaround
+	#-------------------------------------------------------------------------------
+	# WORKAROUND
+	# `strftime("%Y-%m-%d")`
+	# Yuta MASANO <masano@sraoss.co.jp>
+	#
+	# ${0:#:description}
+	#-------------------------------------------------------------------------------
+
+#===============================================================================
+#  Environment Variable
+#===============================================================================
+snippet env_bash
+options word
+	$BASH
+
+snippet env_bashopts
+options word
+	$BASHOPTS
+
+snippet env_bashpid
+options word
+	$BASHPID
+
+snippet env_bash_aliases
+options word
+	$BASH_ALIASES
+
+snippet env_bash_argc
+options word
+	$BASH_ARGC
+
+snippet env_bash_argv
+options word
+	$BASH_ARGV
+
+snippet env_bash_cmds
+options word
+	$BASH_CMDS
+
+snippet env_bash_command
+options word
+	$BASH_COMMAND
+
+snippet env_bash_env
+options word
+	$BASH_ENV
+
+snippet env_bash_execution_string
+options word
+	$BASH_EXECUTION_STRING
+
+snippet env_bash_lineno
+options word
+	$BASH_LINENO
+
+snippet env_bash_rematch
+options word
+	$BASH_REMATCH
+
+snippet env_bash_source
+options word
+	$BASH_SOURCE
+
+snippet env_bash_subshell
+options word
+	$BASH_SUBSHELL
+
+snippet env_bash_versinfo
+options word
+	$BASH_VERSINFO
+
+snippet env_bash_version
+options word
+	$BASH_VERSION
+
+snippet env_bash_xtracefd
+options word
+	$BASH_XTRACEFD
+
+snippet env_cdpath
+options word
+	$CDPATH
+
+snippet env_columns
+options word
+	$COLUMNS
+
+snippet env_compreply
+options word
+	$COMPREPLY
+
+snippet env_comp_cword
+options word
+	$COMP_CWORD
+
+snippet env_comp_key
+options word
+	$COMP_KEY
+
+snippet env_comp_line
+options word
+	$COMP_LINE
+
+snippet env_comp_point
+options word
+	$COMP_POINT
+
+snippet env_comp_type
+options word
+	$COMP_TYPE
+
+snippet env_comp_wordbreaks
+options word
+	$COMP_WORDBREAKS
+
+snippet env_comp_words
+options word
+	$COMP_WORDS
+
+snippet env_dirstack
+options word
+	$DIRSTACK
+
+snippet env_emac&S
+options word
+	$EMAC&S
+
+snippet env_euid
+options word
+	$EUID
+
+snippet env_fcedit
+options word
+	$FCEDIT
+
+snippet env_fignore
+options word
+	$FIGNORE
+
+snippet env_funcname
+options word
+	$FUNCNAME
+
+snippet env_funcnest
+options word
+	$FUNCNEST
+
+snippet env_globignore
+options word
+	$GLOBIGNORE
+
+snippet env_groups
+options word
+	$GROUPS
+
+snippet env_histcmd
+options word
+	$HISTCMD
+
+snippet env_histcontrol
+options word
+	$HISTCONTROL
+
+snippet env_histfile
+options word
+	$HISTFILE
+
+snippet env_histfilesize
+options word
+	$HISTFILESIZE
+
+snippet env_histignore
+options word
+	$HISTIGNORE
+
+snippet env_histsize
+options word
+	$HISTSIZE
+
+snippet env_histtimeformat
+options word
+	$HISTTIMEFORMAT
+
+snippet env_home
+options word
+	$HOME
+
+snippet env_hostfile
+options word
+	$HOSTFILE
+
+snippet env_hostname
+options word
+	$HOSTNAME
+
+snippet env_hosttype
+options word
+	$HOSTTYPE
+
+snippet env_ifs
+options word
+	$IFS
+
+snippet env_ignoreeof
+options word
+	$IGNOREEOF
+
+snippet env_inputrc
+options word
+	$INPUTRC
+
+snippet env_lang
+options word
+	$LANG
+
+snippet env_lc_all
+options word
+	$LC_ALL
+
+snippet env_lc_collate
+options word
+	$LC_COLLATE
+
+snippet env_lc_ctype
+options word
+	$LC_CTYPE
+
+snippet env_lc_messages
+options word
+	$LC_MESSAGES
+
+snippet env_lc_numeric
+options word
+	$LC_NUMERIC
+
+snippet env_lineno
+options word
+	$LINENO
+
+snippet env_lines
+options word
+	$LINES
+
+snippet env_machtype
+options word
+	$MACHTYPE
+
+snippet env_mail
+options word
+	$MAIL
+
+snippet env_mailcheck
+options word
+	$MAILCHECK
+
+snippet env_mailpath
+options word
+	$MAILPATH
+
+snippet env_oldpwd
+options word
+	$OLDPWD
+
+snippet env_optarg
+options word
+	$OPTARG
+
+snippet env_opterr
+options word
+	$OPTERR
+
+snippet env_optind
+options word
+	$OPTIND
+
+snippet env_ostype
+options word
+	$OSTYPE
+
+snippet env_path
+options word
+	$PATH
+
+snippet env_pipestatus
+options word
+	$PIPESTATUS
+
+snippet env_posixly_correct
+options word
+	$POSIXLY_CORRECT
+
+snippet env_ppid
+options word
+	$PPID
+
+snippet env_prompt_command
+options word
+	$PROMPT_COMMAND
+
+snippet env_prompt_dirtrim
+options word
+	$PROMPT_DIRTRIM
+
+snippet env_ps1
+options word
+	$PS1
+
+snippet env_ps2
+options word
+	$PS2
+
+snippet env_ps3
+options word
+	$PS3
+
+snippet env_ps4
+options word
+	$PS4
+
+snippet env_pwd
+options word
+	$PWD
+
+snippet env_random
+options word
+	$RANDOM
+
+snippet env_reply
+options word
+	$REPLY
+
+snippet env_seconds
+options word
+	$SECONDS
+
+snippet env_shell
+options word
+	$SHELL
+
+snippet env_shellopts
+options word
+	$SHELLOPTS
+
+snippet env_shlvl
+options word
+	$SHLVL
+
+snippet env_timeformat
+options word
+	$TIMEFORMAT
+
+snippet env_tmout
+options word
+	$TMOUT
+
+snippet env_tmpdir
+options word
+	$TMPDIR
+
+snippet env_uid
+options word
+	$UID
+
+#===============================================================================
+#  IO Redirection
+#===============================================================================
+snippet io_&>>
+abbr append STDOUT and STDERR to file
+options word
+	&>> ${0:#:filepath}
+
+snippet io_>>
+abbr append STDOUT to file
+options word
+	>> ${0:#:filepath}
+
+snippet io_2>>
+abbr append STDERR to file
+options word
+	2>> ${0:#:filepath}
+
+snippet io_n>>
+abbr append file descr n to file
+options word
+	${1:#:descr}>> ${0:#:filepath}
+
+snippet io_&>
+abbr direct STDOUT and STDERR to file
+options word
+	&> ${0:#:filepath}
+
+snippet io_>
+abbr direct STDOUT to file
+options word
+	> ${0:#:filepath}
+
+snippet io_2>
+abbr direct STDERR to file
+options word
+	2> ${0:#:filepath}
+
+snippet io_n>
+abbr direct file descr n to file
+options word
+	${1:#:descr}> ${0:#:filepath}
+
+snippet io_>&2
+abbr redirect STDOUT to STDERR
+options word
+	>&2${0}
+
+snippet io_2>&1
+abbr redirect STDERR to STDOUT
+options word
+	2>&1${0}
+
+snippet io_n<&-
+abbr close input from file descr n
+options word
+	${1:#:descr}<&- ${0}
+
+snippet io_n>&-
+abbr close output from file descr n
+options word
+	${1:#:descr}>&- ${0}
+
+snippet io_<&-
+abbr close STDIN
+options word
+	<&- ${0}
+
+snippet io_>&-
+abbr close STDOUT
+options word
+	>&- ${0}
+
+snippet io_n<&
+abbr duplicate STDIN from file descr n
+options word
+	<${1:#:descr}& ${0:#:filepath}
+
+snippet io_n>&
+abbr duplicate STDOUT to file descr n
+options word
+	>${1:#:descr}& ${0}
+
+snippet io_n<
+abbr take file descr n from file
+options word
+	${1:#:descr}< ${0:#:filepath}
+
+snippet io_<
+abbr take STDIN from file
+options word
+	< ${0:#:filepath}
+
+#===============================================================================
+#  Parameter Substitution
+#===============================================================================
+# 大文字小文字変換は後ろに pattern を追加できるらしいが？
+snippet v_${_^^}
+abbr all lower to upper
+options word
+	${${0:var}^^}
+
+snippet v_${_,,}
+abbr all upper to lower
+options word
+	${${0:var},,}
+
+snippet v_${_^}
+abbr first lower to upper
+options word
+	${${0:var}^}
+
+snippet v_${_,}
+abbr first upper to lower
+options word
+	${${0:var},}
+
+snippet v_${_:=_}
+abbr NULL ならデフォルト値を代入
+options word
+	${${1:var}:=${0:default}}
+
+snippet v_${_:?_}
+abbr NULL ならメッセージを表示してエラー終了
+options word
+	${${0:var}:?value is not set}
+
+snippet v_${!_}
+abbr name='bob' -> val='name' -> ${!val} => bob
+options word
+	${!${0:var}}
+
+snippet v_${!_*}
+abbr マッチする変数名をスペース区切りで列挙
+options word
+	${!${0:var}*}
+
+snippet v_${#_}
+abbr 変数の length（というか byte 数）
+options word
+	${#${0:var}}
+
+snippet v_${_//_/_}
+abbr パターンにマッチしたものを全て置換
+options word
+	${${1:var}//${2:pattern}/${3:replace}}
+
+#---  TODO: 2016-11-11  --------------------------------------------------------
+
+snippet v_${_/#_/_}
+abbr pattern substitution begin
+options word
+	${${n:var}/#<+pattern+>/<+string+>}
+
+snippet v_${_/_/_}
+abbr パターンにマッチした最初のものを置換
+options word
+	${${n:var}/<+pattern+>/<+string+>}
+
+snippet v_${_/%_/_}
+abbr pattern substitution end
+options word
+	${${n:var}/%<+pattern+>/<+string+>}
+
+snippet v_${_##_}
+abbr remove all matching prefix pattern
+options word
+	${${n:var}##<+word+>}
+
+snippet v_${_%%_}
+abbr remove all matching suffix pattern
+options word
+	${${n:var}%%<+word+>}
+
+snippet v_${_#_}
+abbr remove matching prefix pattern
+options word
+	${${n:var}#<+word+>}
+
+snippet v_${_%_}
+abbr remove matching suffix pattern
+options word
+	${${n:var}%<+word+>}
+
+snippet v_${_}
+abbr substitution
+options word
+	${<SPLIT>${n:var}}
+
+snippet v_${_:_:_}
+abbr 文字列の切り出し
+options word
+	${${1:var}:${2:offset}${3:#::length}}
+
+snippet v_${_:+_}
+abbr use alternate value
+options word
+	${${n:var}:+<+word+>}
+
+snippet v_${_:-_}
+abbr use default value
+options word
+	${${n:var}:-<+word+>}
+
+#===============================================================================
+#  Declaration
+#===============================================================================
+snippet function
+	#---  FUNCTION  ----------------------------------------------------------------
+	#          NAME: $1
+	#   DESCRIPTION: ${2:---}
+	#    PARAMETERS: ---
+	#       RETURNS: ---
+	#-------------------------------------------------------------------------------
+	${1:name}()
+	{
+		${0}
+	}    # ----------  end of $1  ----------
+
+#===============================================================================
+#  Control Structure
+#===============================================================================
 snippet if
 	if [ ${1:#:condition} ]; then
 		${0:TARGET}
@@ -48,14 +948,6 @@ alias h <<
 snippet env
 	#!/usr/bin/env ${1}
 
-
-snippet tmp
-	${1:TMPFILE}=$(mktemp ${2:XXX})
-	trap "rm -f '${$1}'" 0            # EXIT
-	trap "rm -f '${$1}'; exit 1" 2    # INT
-	trap "rm -f '${$1}'; exit 1" 1 15 # HUP TERM
-	${0}
-
 snippet function
 alias func
 	${1:#:name}()
@@ -83,10 +975,9 @@ snippet case
 	esac
 
 snippet warn
-	echo "${0:TARGET}" 1>&2
+	echo "${0:TARGET}" >&2
 
 snippet abort
-	echo "${0:TARGET}" 1>&2
+	echo "${0:TARGET}" >&2
 	exit 1
 
-# vim: set noexpandtab :
