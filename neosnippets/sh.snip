@@ -70,7 +70,7 @@ abbr #!/bin/bash ...
 	#  MAIN SCRIPT
 	#===============================================================================
 	args="$(getopt -o h,m: -l help,mode: -n "${SCRIPT_NAME}" -- "${@}")"
-	if [ $? -ne 0 ]; then
+	if [ ${?} -ne 0 ]; then
 		print_usage_exit
 	fi
 
@@ -139,7 +139,7 @@ abbr #!/bin/bash ...
 
 	echo "$BASH_VERSION"                                              \
 		| grep --quiet --extended-regexp '[0-3]+\.[0-9]+\.[0-9]' && :
-	if [ $? -eq 0 ]; then
+	if [ ${?} -eq 0 ]; then
 		printf "${SCRIPT_NAME}:${LINENO}: BASH version must be >= 4.0.0\n" >&2
 		exit 192
 	fi
@@ -171,7 +171,7 @@ abbr #!/bin/bash ...
 	#  MAIN SCRIPT
 	#===============================================================================
 	args="$(getopt -o h,m: -l help,mode: -n "${SCRIPT_NAME}" -- "{$@}")"
-	if [ $? -ne 0 ]; then
+	if [ ${?} -ne 0 ]; then
 		print_usage_exit
 	fi
 
@@ -202,13 +202,13 @@ abbr #!/bin/bash ...
 
 snippet ifok
 abbr 直前のコマンドが成功することを期待
-	if [ $? -eq 0 ]; then
+	if [ ${?} -eq 0 ]; then
 		${0}
 	fi
 
 snippet iferr
 abbr 直前のコマンドが失敗することを期待
-	if [ $? -ne 0 ]; then
+	if [ ${?} -ne 0 ]; then
 		${0}
 	fi
 
