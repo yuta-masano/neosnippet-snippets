@@ -137,8 +137,8 @@ abbr #!/bin/bash ...
 		exit 192
 	fi
 
-	echo "$BASH_VERSION" |
-		grep --quiet --extended-regexp '[0-3]+\.[0-9]+\.[0-9]' && :
+	echo "$BASH_VERSION"                                              \
+		| grep --quiet --extended-regexp '[0-3]+\.[0-9]+\.[0-9]' && :
 	if [ $? -eq 0 ]; then
 		printf "${SCRIPT_NAME}:${LINENO}: BASH version must be >= 4.0.0\n" >&2
 		exit 192
