@@ -60,7 +60,7 @@ abbr #!/bin/bash ...
 	print_usage_exit()
 	{
 		printf '\n' >&2
-		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \${SCRIPT_NAME} \
+		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \$SCRIPT_NAME \
 			| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
 		printf '\n' >&2
 		exit 1
@@ -69,19 +69,19 @@ abbr #!/bin/bash ...
 	#===============================================================================
 	#  MAIN SCRIPT
 	#===============================================================================
-	args="$(getopt -o h,m: -l help,mode: -n "${SCRIPT_NAME}" -- "${@}")"
-	if [ ${?} -ne 0 ]; then
+	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@")"
+	if [ $? -ne 0 ]; then
 		print_usage_exit
 	fi
 
-	eval set -- "${args}"
+	eval set -- "$args"
 	while true; do
-		case "\${1}" in
+		case "\$1" in
 			-h | --help)
 				print_usage_exit
 				;;
 			-m | --mode)
-				mode="\${2}"
+				mode="\$2"
 				shift 2
 				;;
 			--)
@@ -133,19 +133,19 @@ abbr #!/bin/bash ...
 	#   SANITY CHECKS
 	#===============================================================================
 	if [ -z "$BASH" ]; then
-		printf "${SCRIPT_NAME}:${LINENO}: run this script with the BASH shell\n" >&2
+		printf "$SCRIPT_NAME:$LINENO: run this script with the BASH shell\n" >&2
 		exit 192
 	fi
 
 	echo "$BASH_VERSION"                                              \
 		| grep --quiet --extended-regexp '[0-3]+\.[0-9]+\.[0-9]' && :
-	if [ ${?} -eq 0 ]; then
-		printf "${SCRIPT_NAME}:${LINENO}: BASH version must be >= 4.0.0\n" >&2
+	if [ $? -eq 0 ]; then
+		printf "$SCRIPT_NAME:$LINENO: BASH version must be >= 4.0.0\n" >&2
 		exit 192
 	fi
 
 	if [ ! -x "$mkdir" ]; then
-		printf "${SCRIPT_NAME}:${LINENO}: command '$mkdir' not available - aborting\n" >&2
+		printf "$SCRIPT_NAME:$LINENO: command '$mkdir' not available - aborting\n" >&2
 		exit 192
 	fi
 
@@ -161,7 +161,7 @@ abbr #!/bin/bash ...
 	print_usage_exit()
 	{
 		printf '\n' >&2
-		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \${SCRIPT_NAME} \
+		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \$SCRIPT_NAME \
 			| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
 		printf '\n' >&2
 		exit 1
@@ -170,19 +170,19 @@ abbr #!/bin/bash ...
 	#===============================================================================
 	#  MAIN SCRIPT
 	#===============================================================================
-	args="$(getopt -o h,m: -l help,mode: -n "${SCRIPT_NAME}" -- "{$@}")"
-	if [ ${?} -ne 0 ]; then
+	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@")"
+	if [ $? -ne 0 ]; then
 		print_usage_exit
 	fi
 
-	eval set -- "${args}"
+	eval set -- "$args"
 	while true; do
-		case "\${1}" in
+		case "\$1" in
 			-h | --help)
 				print_usage_exit
 				;;
 			-m | --mode)
-				mode="\{$}2"
+				mode="\$2"
 				shift 2
 				;;
 			--)
@@ -202,13 +202,13 @@ abbr #!/bin/bash ...
 
 snippet ifok
 abbr 直前のコマンドが成功することを期待
-	if [ ${?} -eq 0 ]; then
+	if [ $? -eq 0 ]; then
 		${0}
 	fi
 
 snippet iferr
 abbr 直前のコマンドが失敗することを期待
-	if [ ${?} -ne 0 ]; then
+	if [ $? -ne 0 ]; then
 		${0}
 	fi
 
@@ -232,7 +232,7 @@ snippet basenames
 	${0}
 
 snippet tmp
-	${1:TMPFILE}="$(mktemp --tmpdir=${2:/tmp} --suffix=".${3:${0##*/\}}")"
+	${1:TMPFILE}="$(mktemp --tmpdir=${2:/tmp} --suffix=".${3:${0%%.sh\}}")"
 	trap 'rm -f $2/tmp.*."$3"'         0        # EXIT
 	trap 'rm -f $2/tmp.*."$3"; exit 1' 1 2 3 15 # HUP QUIT INT TERM
 	${0}
@@ -333,355 +333,355 @@ snippet comment_workaround
 #===============================================================================
 snippet env_bash
 options word
-	${BASH}
+	$BASH
 
 snippet env_bashopts
 options word
-	${BASHOPTS}
+	$BASHOPTS
 
 snippet env_bashpid
 options word
-	${BASHPID}
+	$BASHPID
 
 snippet env_bash_aliases
 options word
-	${BASH_ALIASES}
+	$BASH_ALIASES
 
 snippet env_bash_argc
 options word
-	${BASH_ARGC}
+	$BASH_ARGC
 
 snippet env_bash_argv
 options word
-	${BASH_ARGV}
+	$BASH_ARGV
 
 snippet env_bash_cmds
 options word
-	${BASH_CMDS}
+	$BASH_CMDS
 
 snippet env_bash_command
 options word
-	${BASH_COMMAND}
+	$BASH_COMMAND
 
 snippet env_bash_env
 options word
-	${BASH_ENV}
+	$BASH_ENV
 
 snippet env_bash_execution_string
 options word
-	${BASH_EXECUTION_STRING}
+	$BASH_EXECUTION_STRING
 
 snippet env_bash_lineno
 options word
-	${BASH_LINENO}
+	$BASH_LINENO
 
 snippet env_bash_rematch
 options word
-	${BASH_REMATCH}
+	$BASH_REMATCH
 
 snippet env_bash_source
 options word
-	${BASH_SOURCE}
+	$BASH_SOURCE
 
 snippet env_bash_subshell
 options word
-	${BASH_SUBSHELL}
+	$BASH_SUBSHELL
 
 snippet env_bash_versinfo
 options word
-	${BASH_VERSINFO}
+	$BASH_VERSINFO
 
 snippet env_bash_version
 options word
-	${BASH_VERSION}
+	$BASH_VERSION
 
 snippet env_bash_xtracefd
 options word
-	${BASH_XTRACEFD}
+	$BASH_XTRACEFD
 
 snippet env_cdpath
 options word
-	${CDPATH}
+	$CDPATH
 
 snippet env_columns
 options word
-	${COLUMNS}
+	$COLUMNS
 
 snippet env_compreply
 options word
-	${COMPREPLY}
+	$COMPREPLY
 
 snippet env_comp_cword
 options word
-	${COMP_CWORD}
+	$COMP_CWORD
 
 snippet env_comp_key
 options word
-	${COMP_KEY}
+	$COMP_KEY
 
 snippet env_comp_line
 options word
-	${COMP_LINE}
+	$COMP_LINE
 
 snippet env_comp_point
 options word
-	${COMP_POINT}
+	$COMP_POINT
 
 snippet env_comp_type
 options word
-	${COMP_TYPE}
+	$COMP_TYPE
 
 snippet env_comp_wordbreaks
 options word
-	${COMP_WORDBREAKS}
+	$COMP_WORDBREAKS
 
 snippet env_comp_words
 options word
-	${COMP_WORDS}
+	$COMP_WORDS
 
 snippet env_dirstack
 options word
-	${DIRSTACK}
+	$DIRSTACK
 
 snippet env_emac&S
 options word
-	${EMAC}&S
+	$EMAC&S
 
 snippet env_euid
 options word
-	${EUID}
+	$EUID
 
 snippet env_fcedit
 options word
-	${FCEDIT}
+	$FCEDIT
 
 snippet env_fignore
 options word
-	${FIGNORE}
+	$FIGNORE
 
 snippet env_funcname
 options word
-	${FUNCNAME}
+	$FUNCNAME
 
 snippet env_funcnest
 options word
-	${FUNCNEST}
+	$FUNCNEST
 
 snippet env_globignore
 options word
-	${GLOBIGNORE}
+	$GLOBIGNORE
 
 snippet env_groups
 options word
-	${GROUPS}
+	$GROUPS
 
 snippet env_histcmd
 options word
-	${HISTCMD}
+	$HISTCMD
 
 snippet env_histcontrol
 options word
-	${HISTCONTROL}
+	$HISTCONTROL
 
 snippet env_histfile
 options word
-	${HISTFILE}
+	$HISTFILE
 
 snippet env_histfilesize
 options word
-	${HISTFILESIZE}
+	$HISTFILESIZE
 
 snippet env_histignore
 options word
-	${HISTIGNORE}
+	$HISTIGNORE
 
 snippet env_histsize
 options word
-	${HISTSIZE}
+	$HISTSIZE
 
 snippet env_histtimeformat
 options word
-	${HISTTIMEFORMAT}
+	$HISTTIMEFORMAT
 
 snippet env_home
 options word
-	${HOME}
+	$HOME
 
 snippet env_hostfile
 options word
-	${HOSTFILE}
+	$HOSTFILE
 
 snippet env_hostname
 options word
-	${HOSTNAME}
+	$HOSTNAME
 
 snippet env_hosttype
 options word
-	${HOSTTYPE}
+	$HOSTTYPE
 
 snippet env_ifs
 options word
-	${IFS}
+	$IFS
 
 snippet env_ignoreeof
 options word
-	${IGNOREEOF}
+	$IGNOREEOF
 
 snippet env_inputrc
 options word
-	${INPUTRC}
+	$INPUTRC
 
 snippet env_lang
 options word
-	${LANG}
+	$LANG
 
 snippet env_lc_all
 options word
-	${LC_ALL}
+	$LC_ALL
 
 snippet env_lc_collate
 options word
-	${LC_COLLATE}
+	$LC_COLLATE
 
 snippet env_lc_ctype
 options word
-	${LC_CTYPE}
+	$LC_CTYPE
 
 snippet env_lc_messages
 options word
-	${LC_MESSAGES}
+	$LC_MESSAGES
 
 snippet env_lc_numeric
 options word
-	${LC_NUMERIC}
+	$LC_NUMERIC
 
 snippet env_lineno
 options word
-	${LINENO}
+	$LINENO
 
 snippet env_lines
 options word
-	${LINES}
+	$LINES
 
 snippet env_machtype
 options word
-	${MACHTYPE}
+	$MACHTYPE
 
 snippet env_mail
 options word
-	${MAIL}
+	$MAIL
 
 snippet env_mailcheck
 options word
-	${MAILCHECK}
+	$MAILCHECK
 
 snippet env_mailpath
 options word
-	${MAILPATH}
+	$MAILPATH
 
 snippet env_oldpwd
 options word
-	${OLDPWD}
+	$OLDPWD
 
 snippet env_optarg
 options word
-	${OPTARG}
+	$OPTARG
 
 snippet env_opterr
 options word
-	${OPTERR}
+	$OPTERR
 
 snippet env_optind
 options word
-	${OPTIND}
+	$OPTIND
 
 snippet env_ostype
 options word
-	${OSTYPE}
+	$OSTYPE
 
 snippet env_path
 options word
-	${PATH}
+	$PATH
 
 snippet env_pipestatus
 options word
-	${PIPESTATUS}
+	$PIPESTATUS
 
 snippet env_posixly_correct
 options word
-	${POSIXLY_CORRECT}
+	$POSIXLY_CORRECT
 
 snippet env_ppid
 options word
-	${PPID}
+	$PPID
 
 snippet env_prompt_command
 options word
-	${PROMPT_COMMAND}
+	$PROMPT_COMMAND
 
 snippet env_prompt_dirtrim
 options word
-	${PROMPT_DIRTRIM}
+	$PROMPT_DIRTRIM
 
 snippet env_ps1
 options word
-	${PS1}
+	$PS1
 
 snippet env_ps2
 options word
-	${PS2}
+	$PS2
 
 snippet env_ps3
 options word
-	${PS3}
+	$PS3
 
 snippet env_ps4
 options word
-	${PS4}
+	$PS4
 
 snippet env_pwd
 options word
-	${PWD}
+	$PWD
 
 snippet env_random
 options word
-	${RANDOM}
+	$RANDOM
 
 snippet env_reply
 options word
-	${REPLY}
+	$REPLY
 
 snippet env_seconds
 options word
-	${SECONDS}
+	$SECONDS
 
 snippet env_shell
 options word
-	${SHELL}
+	$SHELL
 
 snippet env_shellopts
 options word
-	${SHELLOPTS}
+	$SHELLOPTS
 
 snippet env_shlvl
 options word
-	${SHLVL}
+	$SHLVL
 
 snippet env_timeformat
 options word
-	${TIMEFORMAT}
+	$TIMEFORMAT
 
 snippet env_tmout
 options word
-	${TMOUT}
+	$TMOUT
 
 snippet env_tmpdir
 options word
-	${TMPDIR}
+	$TMPDIR
 
 snippet env_uid
 options word
-	${UID}
+	$UID
 
 #===============================================================================
 #  IO Redirection
@@ -897,10 +897,14 @@ snippet function
 	#    PARAMETERS: ---
 	#       RETURNS: ---
 	#-------------------------------------------------------------------------------
-	${1:name}()
+	${1:func_name}()
 	{
 		${0}
 	}    # ----------  end of $1  ----------
+
+snippet $
+options word
+	$${1}${0}
 
 #===============================================================================
 #  Operation
