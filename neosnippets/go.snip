@@ -62,15 +62,21 @@ abbr 匿名関数で再帰
 
 snippet config_dir
 abbr .config ディレクトリを作成する
-	var configDir string
-	if runtime.GOOS == win {
-		configDir = filepath.Join(os.Getenv("APPDATA"), "${1:subDir}")
-	} else {
-		configDir = filepath.Join(os.Getenv("HOME"), ".config", "$1")
-	}
+    var configDir string
+    if runtime.GOOS == win {
+        configDir = filepath.Join(os.Getenv("APPDATA"), "${1:subDir}")
+    } else {
+        configDir = filepath.Join(os.Getenv("HOME"), ".config", "$1")
+    }
     err = os.MkdirAll(configDir, ${2:0700})
     if err != nil {
         return err
+    }
+
+snippet handlerFunc
+abbr handleFunc にバインドする関数
+    func ${1:name}(w http.ResponseWriter, r *http.Request) {
+        ${0}
     }
 
 #===============================================================================
@@ -174,6 +180,30 @@ options word
         ${4:#:return}
     }(${3:#:args})
 
+snippet func_test
+abbr test function
+    func Test${1:name}(t *testing.T) {
+        t.Parallel()
+
+        testCases := []struct {
+            input  string
+            expect string
+        }{
+            {
+             input:  "",
+             expect: "",
+            },
+        }
+        ${0}
+    }
+
+snippet func_cobra
+abbr cobra command function
+    func run${1:}(cmd *cobra.Command, args []string) error {
+        ${0}
+        return nil
+    }
+
 snippet :
 abbr short variable declaration
     ${1} := ${0}
@@ -209,6 +239,16 @@ abbr defer func() { ... }
         ${0}
     }()
 
+snippet t_fatalef
+options word
+    t.Fatalf("wrong ${1:test}. expect=%s, but got=%s", ${2:expect}, ${3:got})
+    ${0}
+
+snippet t_fatale
+options word
+    t.Fatal("${1:msg}")
+    ${0}
+
 #===============================================================================
 #  Control Structure
 #===============================================================================
@@ -218,10 +258,10 @@ snippet if
     }
 
 snippet iferr
-    if err != nil {
+    if ${2:err} != nil {
       return `g:NeosnippetSnippets_Goiferr()`
     }
-    ${2}
+    ${3}
 
 snippet for
     for ${1:#:initialization;} ${2:#:condition;} ${3:#:post} {
@@ -254,6 +294,17 @@ abbr for range
 # options     head
 #   case ${1:#:condition}:
 #     ${2:TARGET}
+
+#===============================================================================
+#  I/O
+#===============================================================================
+snippet read_all_stdin
+abbr stdin から全部受け取る
+    ${1:body}, err := ioutil.ReadAll(os.Stdin)
+    if err != nil {
+        ${2:return err}
+    }
+    ${0}
 
 #===============================================================================
 #  vim-go
