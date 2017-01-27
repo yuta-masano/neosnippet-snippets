@@ -22,11 +22,15 @@ alias {}
 options word
     {{ ${1:var} }}${0}
 
+snippet include
+    - include: ${1:#:file}
+    ${0}
+
 #===============================================================================
 #  Module
 #===============================================================================
 snippet name
-    - name: yaml.snip | ${1:#:description}
+    - name: `expand('%:t')` | ${1:#:description}
       ${0}
 
 snippet service
@@ -41,17 +45,18 @@ abbr $HOME, <, >, ;, |, & do not work!
     command:
         ${1:#:command}
     args:
-        chdir: ${2:#:psth} # $2 でコマンドを実行
-        creates: ${3:#:psth} # $3 があったらスキップ
-        removes: ${4:#:psth} # $4 がなかったらスキップ
+        chdir: ${2:#:path} # $2 でコマンドを実行
+        creates: ${3:#:path} # $3 があったらスキップ
+        removes: ${4:#:path} # $4 がなかったらスキップ
     ${0}
 
 snippet shell
     shell: |-
+        ${1:#:command}
     args:
-        chdir: ${2:#:psth} # $2 でコマンドを実行
-        creates: ${3:#:psth} # $3 があったらスキップ
-        removes: ${4:#:psth} # $4 がなかったらスキップ
+        chdir: ${2:#:path} # $2 でコマンドを実行
+        creates: ${3:#:path} # $3 があったらスキップ
+        removes: ${4:#:path} # $4 がなかったらスキップ
     ${0}
 
 snippet confirm
@@ -61,6 +66,86 @@ snippet confirm
       register: ${2:ret}
     ${0}
 
+snippet file
+    file:
+        path: ${1:#:target file}
+        src: ${2:#:syn link sorce}
+        owner: ${3:#:owner}
+        group: ${4:#:group}
+        mode: '${5:0600}'
+        state: ${6:#:file | link | directory | absent}
+    ${0}
+
+snippet find
+abbr ret は dict 構造なので注意
+    find:
+      paths: ${1:#:search path}
+      file_type: ${2:#:file | directory}
+      patterns: ${3:#:'*'}
+      use_regex: ${4:#:no(*) | yes}
+    register: ret # ret.files => [{path: ..., mode: ..., checksum: ...}, { ... }]
+    ${0}
+
+snippet template
+options word
+    template:
+      dest: ${1:#:target file}/${2:#:name}
+      src: $2.j2
+    ${0}
+
+snippet copy
+abbr src に環境変数が使えないので {{ lookup('env', 'HOME') }} すること
+    copy:
+      dest: ${1:#:target file}
+      src: ${2:#:src file}
+      remote_sorc: ${3:#:no(*) | yes } # yes: ターゲットマシンのファイルを src にする
+    ${0}
+
+snippet get_url
+abbr dest に環境変数が使えないので {{ lookup('env', 'HOME') }} すること
+    get_url:
+      dest: ${1:#:absolute path}
+      url: ${2:#:url}
+    ${0}
+
+snippet unarchive
+    unarchive:
+      dest: ${1:#:directory path}
+      src: ${2:#:parh or url}
+      remote_src: ${3:#:no(*) | yes} # yes: src を url から DL にする
+      list_files: yes
+    ${0}
+
+snippet synchronize
+    synchronize:
+      dest: ${1:#:target path}
+      src:  ${2:#:sorce path}
+      rsync_opts:
+        - --remove-source-files
+    ${0}
+
+#===============================================================================
+#  Condition
+#===============================================================================
+snippet register
+    register: ${1:ret}
+    ${0}
+
+snippet when
+    when: ${1:#:condition}
+    ${0}
+
+snippet when_and
+abbr and 条件はリストで指定できる
+    when:
+      - ${1:#:condition}
+    ${0}
+
+snippet when_ret
+abbr ret をフィルタリング
+    when: ${1:ret} | ${2:#:ok | changed | failed | skipped}
+    ${0}
+
 #===============================================================================
 #  Loop
 #===============================================================================
@@ -68,6 +153,19 @@ snippet with_items
       with_items:
         - ${1:#:item}
         ${0}
+
+snippet with_fileglob
+abbr files/ が起点
+    with_fileglob:
+        - ${1:#:item}
+        ${0}
+
+#===============================================================================
+#  Grab
+#===============================================================================
+snippet lookup
+options word
+    "{{ lookup('${1:env}', '${2:name}') }}${0}"
 
 #===============================================================================
 #  Conventional Code
@@ -87,3 +185,18 @@ abbr reboot tasks
       delay: 10
       delegate_to: 127.0.0.1
       become: no
+
+    ${0}
+
+snippet enum
+abbr find コマンドでターゲットを列挙する
+    - name: ${1:ファイル}を列挙する
+      command:
+        find ${2:#:path} -type ${3:f}
+      register: file_list
+
+    - name: ${4:#:対象に実施する内容}
+        ${5:#:module}
+      with_items: '{{ file_list.stdout_lines }}'
+
+    ${0}
