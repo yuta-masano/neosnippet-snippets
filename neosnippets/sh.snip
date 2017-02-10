@@ -232,7 +232,7 @@ snippet basenames
 	${0}
 
 snippet tmp
-	${1:TMPFILE}="$(mktemp --tmpdir=${2:/tmp} --suffix=".${3:${0%%.sh\}}")"
+	${1:TMPFILE}="$(mktemp --tmpdir=${2:/tmp} --suffix=".${3:${SCRIPT_NAME%%.*\}}")"
 	trap 'rm -f $2/tmp.*."$3"'         0        # EXIT
 	trap 'rm -f $2/tmp.*."$3"; exit 1' 1 2 3 15 # HUP QUIT INT TERM
 	${0}
