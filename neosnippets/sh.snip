@@ -60,7 +60,7 @@ abbr #!/bin/bash ...
 	print_usage_exit()
 	{
 		printf '\n' >&2
-		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \$SCRIPT_NAME \
+		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' $SCRIPT_NAME \
 			| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
 		printf '\n' >&2
 		exit 1
@@ -161,7 +161,7 @@ abbr #!/bin/bash ...
 	print_usage_exit()
 	{
 		printf '\n' >&2
-		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' \$SCRIPT_NAME \
+		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' $SCRIPT_NAME \
 			| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
 		printf '\n' >&2
 		exit 1
