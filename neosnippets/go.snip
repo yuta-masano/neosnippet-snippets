@@ -8,11 +8,11 @@ abbr package main\nimport fmt...
     package main
 
     import (
-        "fmt"
+        "github.com/davecgh/go-spew/spew"
     )
 
     func main() {
-        fmt.Printf("Hello, world\n")
+        spew.Dump("Hello, world\n")
         ${0}
     }
 
@@ -204,6 +204,12 @@ abbr cobra command function
         return nil
     }
 
+snippet func_handler
+abbr web のハンドラ関数
+    func ${1:name}(w http.ResponseWriter, r *http.Request) {
+        ${0:TARGET}
+    }
+
 snippet :
 abbr short variable declaration
     ${1} := ${0}
@@ -241,7 +247,7 @@ abbr defer func() { ... }
 
 snippet t_fatalef
 options word
-    t.Fatalf("wrong ${1:test}. expect=%s, but got=%s", ${2:expect}, ${3:got})
+    t.Fatalf("wrong ${1:test}: expected=%s, but got=%s", ${2:expected}, ${3:got})
     ${0}
 
 snippet t_fatale

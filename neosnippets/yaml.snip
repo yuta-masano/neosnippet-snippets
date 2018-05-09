@@ -17,14 +17,21 @@ snippet vars_prompt
           private: ${4:#:yes | no}
     ${0}
 
+snippet include
+    - include: ${1:#:file_path}
+    ${0}
+
+#===============================================================================
+#  Variable
+#===============================================================================
 snippet variable
 alias {}
 options word
     {{ ${1:var} }}${0}
 
-snippet include
-    - include: ${1:#:file}
-    ${0}
+snippet role_path
+options word
+    {{ role_path }}${0}
 
 #===============================================================================
 #  Module
@@ -69,7 +76,7 @@ snippet confirm
 snippet file
     file:
         path: ${1:#:target file}
-        src: ${2:#:syn link sorce}
+        src: ${2:#:sym link sorce}
         owner: ${3:#:owner}
         group: ${4:#:group}
         mode: '${5:0600}'
@@ -130,6 +137,28 @@ snippet yum
       state: ${2:#:present (*)| latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
     ${0}
 
+snippet apt
+    apt:
+      name: ${1:#:package name}
+      deb: ${2:#:.deb package path or 'url'}
+      state: ${3:#:present (*)| latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
+    ${0}
+
+snippet debug
+options word
+    debug:
+      var: ${1:#:var}
+      msg: '{{ ${2:#:var} }}'
+    ${0}
+
+snippet blockinfile
+    blockinfile:
+    path: ${1:#:target path}
+    block: |
+      ${2:#:block contents}
+    create: yes # ファイルが存在していなかったら作成する
+    ${0}
+
 #===============================================================================
 #  Condition
 #===============================================================================
@@ -161,7 +190,7 @@ snippet with_items
         ${0}
 
 snippet with_fileglob
-abbr files/ が起点
+abbr files/ が起点 | * が使える | {{ item }} でファイルパスが入る
     with_fileglob:
         - ${1:#:item}
         ${0}
@@ -178,11 +207,11 @@ options word
 #===============================================================================
 snippet reboot
 abbr reboot tasks
-    - name: サーバを再起動
+    - name: サーバを再起動する
       command:
         reboot
 
-    - name: サーバが起動完了するまで（無理矢理）待機
+    - name: サーバが起動完了するまで（無理矢理）待機する
       command:
         ssh {{ inventory_hostname }} 'exit'
       register: ret
@@ -204,5 +233,103 @@ abbr find コマンドでターゲットを列挙する
     - name: ${4:#:対象に実施する内容}
         ${5:#:module}
       with_items: '{{ file_list.stdout_lines }}'
+
+    ${0}
+
+snippet local_stat
+abbr local のファイルの有無でタスクを変化させる
+    - name: `expand('%:t')` | ${1:#:description}
+      ${2:#:task what you wanto do}
+      with_first_found: # paths[0]/files[...], paths[1]/files[...], ...
+        - files:
+          - ${3:#:file_name}
+        - paths:
+          - ${4:#:directory_name}
+          skip: ${5:#:False(*) | True} # True = ファイルが存在しなければエラー
+
+    ${0}
+
+snippet remote_stat
+abbr remote のファイルの有無でタスクを変化させる
+    - name: `expand('%:t')` | ${1:ファイル}の状態を確認する
+      stat:
+        path: ${2:#:path}
+      register: ret
+
+    - name: `expand('%:t')` | ${3:#:description}
+      ${4:#:task what you wanto do}
+      when: ${5:#:not }ret.stat.exists
+      # ret: {
+      #     changed: false,
+      #     stat: {
+      #         atime: 1487494075.8834429,
+      #         ctime: 1487394697.2800586,
+      #         dev: 64512,
+      #         executable: true,
+      #         exists: true,
+      #         gid: 0,
+      #         gr_name: "root",
+      #         inode: 1313398,
+      #         isblk: false,
+      #         ischr: false,
+      #         isdir: false,
+      #         isfifo: false,
+      #         isgid: false,
+      #         islnk: true,
+      #         isreg: false,
+      #         issock: false,
+      #         isuid: false,
+      #         lnk_source: "/opt/firefox-45.5.0esr",
+      #         mode: "0777",
+      #         mtime: 1487394697.2800586,
+      #         nlink: 1,
+      #         path: "/opt/firefox",
+      #         pw_name: "root",
+      #         readable: true,
+      #         rgrp: true,
+      #         roth: true,
+      #         rusr: true,
+      #         size: 22,
+      #         uid: 0,
+      #         wgrp: true,
+      #         woth: true,
+      #         writeable: true,
+      #         wusr: true,
+      #         xgrp: true,
+      #         xoth: true,
+      #         xusr: true
+      #     }
+      # }
+
+    ${0}
+
+snippet command_stat
+abbr command の結果でタスクを変化させる
+    - name: `expand('%:t')` | ${1:#:description}
+      command:
+        ${2:#:command}
+      register: ret
+
+    - name: `expand('%:t')` | ${3:#:description}
+      ${4:#:task what you wanto do}
+      when: '{{ ret.stdout_lines | length }} != 0'
+      # ret: {
+      #     changed: true,
+      #     cmd: [
+      #         "pgrep",
+      #         "--exact",
+      #         "firefox"
+      #     ],
+      #     delta: "0:00:00.008690",
+      #     end: "2017-02-20 12:42:11.357574",
+      #     rc: 0,
+      #     start: "2017-02-20 12:42:11.348884",
+      #     stderr: "",
+      #     stdout: "5994",
+      #     stdout_lines: [
+      #         "5994"
+      #     ],
+      #     warnings: []
+      # }
 
     ${0}

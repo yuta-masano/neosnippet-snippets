@@ -18,11 +18,11 @@ snippet shebang
 abbr #!/bin/bash ...
 	#!/bin/bash
 	#===============================================================================
-	#          FILE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')`
+	#          FILE: `expand('%:t')`
 	#
-	#         USAGE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')` [OPTION] [ACTION]
+	#         USAGE: `expand('%:t')` [OPTION] [ACTION]
 	#
-	#   DESCRIPTION: ${0:---}
+	#   DESCRIPTION: ${1:---}
 	#
 	#       OPTIONS: -h, --help
 	#                    Print help and exit.
@@ -41,9 +41,9 @@ abbr #!/bin/bash ...
 
 	# Prevent commands misbehaving due to locale differences.
 	export LC_ALL=C LANG=C
-
+	${0}
 	#===============================================================================
-	#   GLOBAL DECLARATIONS
+	#  GLOBAL DECLARATIONS
 	#===============================================================================
 	SCRIPT_NAME="${0##*/}"
 	SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -59,10 +59,12 @@ abbr #!/bin/bash ...
 	#-------------------------------------------------------------------------------
 	print_usage_exit()
 	{
-		printf '\n' >&2
-		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' "\$0" \
-			| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
-		printf '\n' >&2
+		{
+			printf '\n'
+			awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' "\$0" \
+				| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //'
+			printf '\n'
+		} >&2
 		exit 1
 	}    # ----------  end of print_usage_exit  ----------
 
@@ -98,11 +100,11 @@ snippet shebang_well_behaved
 abbr #!/bin/bash ...
 	#!/bin/bash
 	#===============================================================================
-	#          FILE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')`
+	#          FILE: `expand('%:t')`
 	#
-	#         USAGE: `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')` [OPTION] [ACTION]
+	#         USAGE: `expand('%:t')` [OPTION] [ACTION]
 	#
-	#   DESCRIPTION: ${0:---}
+	#   DESCRIPTION: ${1:---}
 	#
 	#       OPTIONS: -h, --help
 	#                    Print help and exit.
@@ -121,16 +123,16 @@ abbr #!/bin/bash ...
 
 	# Prevent commands misbehaving due to locale differences.
 	export LC_ALL=C LANG=C
-
+	${0}
 	#===============================================================================
-	#   GLOBAL DECLARATIONS
+	#  GLOBAL DECLARATIONS
 	#===============================================================================
 	declare -rx SCRIPT_NAME="${0##*/}"
 	declare -rx SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 	declare -rx mkdir='/bin/mkdir'
 
 	#===============================================================================
-	#   SANITY CHECKS
+	#  SANITY CHECKS
 	#===============================================================================
 	if [ -z "$BASH" ]; then
 		printf "$SCRIPT_NAME:$LINENO: run this script with the BASH shell\n" >&2
@@ -160,10 +162,12 @@ abbr #!/bin/bash ...
 	#-------------------------------------------------------------------------------
 	print_usage_exit()
 	{
-		printf '\n' >&2
-		awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' "\$0" \
-			| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //' >&2
-		printf '\n' >&2
+		{
+			printf '\n'
+			awk '/^# +USAGE:/,/^# +AUTHOR:/ {print \$0}' "\$0" \
+				| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //'
+			printf '\n'
+		} >&2
 		exit 1
 	}    # ----------  end of print_usage_exit  ----------
 
@@ -196,7 +200,7 @@ abbr #!/bin/bash ...
 	done
 
 	#===============================================================================
-	#   STATISTICS / CLEANUP
+	#  STATISTICS / CLEANUP
 	#===============================================================================
 	exit 0
 
@@ -215,11 +219,15 @@ abbr 直前のコマンドが失敗することを期待
 snippet force_success
 abbr 強制的に終了ステータスを 0 にする
 options word
+	# ret=$(... || :) したい場合は
+	# local ret=$(... || :) しなければならない。
 	|| :${0}
 
 snippet force_execute
 abbr コマンドが失敗しても errexit せずに進むが終了ステータスは取りたい
 options word
+	# ret=$(... && :) したい場合は
+	# local ret=$(... && :) しなければならない。
 	&& :${0}
 
 snippet basenames
@@ -237,51 +245,97 @@ snippet tmp
 	trap 'rm -f $2/tmp.*."$3"; exit 1' 1 2 3 15 # HUP QUIT INT TERM
 	${0}
 
+snippet exclusive-locks
+abbr 可搬性の高い多重起動防止処理
+	# exec 9< "\$0"
+	# perl -mFcntl=:flock -e "open(LOCK,'<&=9');exit(!flock(LOCK,LOCK_EX|LOCK_NB))" \
+	# 	|| { echo "\$0: duplicate process." >&2; exit 1; }
+	${1}
+	exec {lock_fd}< "\$0"
+	flock --nonblock ${lock_fd} || { echo "\$0: duplicate process." >&2; exit 1; }
+
+snippet read
+abbr ユーザ入力受け付け
+	echo -n '${1:please enter> }'
+	read ${2:input}
+	${0}
+
+snippet check_args_num
+abbr 引数が 1 以上を保証
+	if [ $# -lt ${1:1} ]; then
+		${0}
+	fi
+
+snippet step_in
+abbr スクリプトをステップ実行
+	trap 'read -p "\$0($LINENO) $BASH_COMMAND"' DEBUG
+	${0}
+
+snippet readline_file
+abbr  ファイルを一行ずつ読んで処理をする
+	while read ${1:line}
+		${0}
+	do
+	done < ${2:#:filepath}
+
+snippet readline_file
+abbr  ファイルを一行ずつ読んで処理をする
+	while read ${1:line}
+		${0}
+	do
+	done < ${2:#:filepath}
+
+snippet readline_herestring
+abbr  ヒアストリング結果を一行ずつ読んで処理をする (only bash)
+	while read ${1:line}
+		${0}
+	do
+	done <<< ${2:#:variable}
+
 #===============================================================================
 #  Comment
 #===============================================================================
 snippet comment_global_declarations
 	#===============================================================================
-	#   GLOBAL DECLARATIONS
+	#  GLOBAL DECLARATIONS
 	#===============================================================================
 	${0}
 
 snippet comment_command_line_processing
 	#===============================================================================
-	#   COMMAND LINE PROCESSING
+	#  COMMAND LINE PROCESSING
 	#===============================================================================
 	${0}
 
 snippet comment_sanity_checks
 	#===============================================================================
-	#   SANITY CHECKS
+	#  SANITY CHECKS
 	#===============================================================================
 	${0}
 
 snippet comment_function_definitions
 	#===============================================================================
-	#   FUNCTION DEFINITIONS
+	#  FUNCTION DEFINITIONS
 	#===============================================================================
 	${0}
 
 snippet comment_traps
 	#===============================================================================
-	#   TRAPS
+	#  TRAPS
 	#===============================================================================
 	${0}
 
 snippet comment_main_script
 	#===============================================================================
-	#   MAIN SCRIPT
+	#  MAIN SCRIPT
 	#===============================================================================
 	${0}
 
 snippet comment_statistics_or_cleanup
 	#===============================================================================
-	#   STATISTICS / CLEAN-UP
+	#  STATISTICS / CLEAN-UP
 	#===============================================================================
 	${0}
-
 
 snippet comment_bug
 	#-------------------------------------------------------------------------------
@@ -800,6 +854,14 @@ abbr first upper to lower
 options word
 	${${0:var},}
 
+snippet v_${_:-_}
+abbr NULL ならデフォルト値を使う（代入ではない）
+options word
+	${${1:var}:-${0:default}}
+	# 以下で \$1 が未定義なら空文字を代入ができる。
+	# 空文字の場合はダブルクォートでくくる場合がある点に注意。
+	# VAR="\${1:-}"
+
 snippet v_${_:=_}
 abbr NULL ならデフォルト値を代入
 options word
@@ -882,46 +944,68 @@ abbr use alternate value
 options word
 	${${n:var}:+<+word+>}
 
-snippet v_${_:-_}
-abbr use default value
-options word
-	${${n:var}:-<+word+>}
-
 #===============================================================================
 #  Declaration
 #===============================================================================
 snippet function
+abbr defin a function with a comment block
 	#---  FUNCTION  ----------------------------------------------------------------
-	#          NAME: $1
-	#   DESCRIPTION: ${2:---}
+	#          NAME: ${1:func_name}
+	#   DESCRIPTION: ---
 	#    PARAMETERS: ---
 	#       RETURNS: ---
 	#-------------------------------------------------------------------------------
-	${1:func_name}()
+	$1()
 	{
-		${0}
+		${0:TARGET}
 	}    # ----------  end of $1  ----------
-
-snippet $
-options word
-	$${1}${0}
 
 #===============================================================================
 #  Operation
 #===============================================================================
-snippet &&
-abbr 左が成功したら右もする
+snippet AND
+abbr ... && ... 左が成功したら右もする
 options word
 	&& ${0}
 
-snippet ||
-abbr 左が失敗したらしたら右をする
+snippet OR
+abbr ... || ... 左が失敗したらしたら右をする
 options word
 	|| ${0}
 
 #===============================================================================
 #  Control Structure
 #===============================================================================
+snippet test_eq
+abbr =
+options word
+	-eq ${0}
+
+snippet test_ne
+abbr <>
+options word
+    -ne ${0}
+
+snippet test_ge
+abbr >=
+options word
+    -ge ${0}
+
+snippet test_gt
+abbr >
+options word
+    -gt ${0}
+
+snippet test_le
+abbr <=
+options word
+    -le ${0}
+
+snippet test_lt
+abbr <
+options word
+    -lt ${0}
+
 snippet if
 	if [ ${1:#:condition} ]; then
 		${0:TARGET}
@@ -958,19 +1042,13 @@ snippet until
 
 snippet heredoc
 alias h <<
-	<< ${1:EOF}
+	<<- ${1:EOF}
 		${0:#:TARGET}
 	$1
 
 snippet env
 	#!/usr/bin/env ${1}
 
-snippet function
-alias func
-	${1:#:name}()
-	{
-		${0:TARGET}
-	}
 
 snippet match-regexp
 abbr =~
@@ -988,7 +1066,7 @@ snippet case
 			${0}
 			;;
 		*)
-			${3:echo "$$1 Didn't match anything"}
+			${3:echo "\$$1 didn't match anything"}
 	esac
 
 snippet warn
@@ -997,4 +1075,3 @@ snippet warn
 snippet abort
 	echo "${0:TARGET}" >&2
 	exit 1
-

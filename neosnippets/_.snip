@@ -2,57 +2,47 @@
 
 source _.vim
 
-snippet date_english
-options word
-    `strftime("%d %b %Y")`${0}
-
-snippet datetime_iso8601
-alias df
+snippet current_timestamp
+abbr %Y-%m-%d %H:%M:%S
 options word
     `strftime("%Y-%m-%dT%H:%M:%S")`${0}
 
-snippet date_iso8601
-alias dd
+snippet current_date
+abbr %Y-%m-%d
 options word
     `strftime("%Y-%m-%d")`${0}
 
-snippet time_colon
-alias dt
-options word
+snippet current_time
+abbr %H:%M:%S
     `strftime("%H:%M:%S")`${0}
 
-snippet lastmod
-abbr Last modified time
-alias lmod
-    Last Modified: `strftime("%Y-%m-%dT%H:%M:%S")`${0}
-
 snippet filename
-alias fname
 options word
-    `bufname('%') ==#'[Command Line]' ? expand('#') : expand('%')`${0}
+    `expand('%:t')`${0}
 
 snippet path
 options word
-    `substitute(bufname('%') ==#'[Command Line]' ? expand('#:p') : expand('%:p'), '//\+', '/', 'g')`${0}
+    `expand('%')`${0}
 
-snippet rpath
-options word
-    `substitute(bufname('%') ==#'[Command Line]' ? expand('#:h') : expand('%:h'), '\(//*\|/*$\)', '/', 'g')`${0}
-
-snippet basename
-alias bname
-options word
-    `bufname('%') ==#'[Command Line]' ? expand('#:t:r:r:r') : expand('%:t:r:r:r')`${0}
-
-snippet filename_upper_camel
-alias fnameuc
-options word
-    `substitute(bufname('%') ==#'[Command Line]' ? expand('#:t:r:r:r') : expand('%:t:r:r:r'), '\%(^\(.\)\|_\(.\)\)', '\u\1\u\2', 'g')`${0}
-
-snippet filename_lower_camel
-alias fnamelc
-options word
-    `substitute(bufname('%') ==#'[Command Line]' ? expand('#:t:r:r:r') : expand('%:t:r:r:r'), '\%(_\(.\)\)', '\u\1', 'g')`${0}
+# 使い道がない。#{{{
+# snippet rpath
+# options word
+#     `substitute(bufname('%') ==#'[Command Line]' ? expand('#:h') : expand('%:h'), '\(//*\|/*$\)', '/', 'g')`${0}
+#
+# snippet basename
+# alias bname
+# options word
+#     `bufname('%') ==#'[Command Line]' ? expand('#:t:r:r:r') : expand('%:t:r:r:r')`${0}
+#
+# snippet filename_upper_camel
+# alias fnameuc
+# options word
+#     `substitute(bufname('%') ==#'[Command Line]' ? expand('#:t:r:r:r') : expand('%:t:r:r:r'), '\%(^\(.\)\|_\(.\)\)', '\u\1\u\2', 'g')`${0}
+#
+# snippet filename_lower_camel
+# alias fnamelc
+# options word
+#     `substitute(bufname('%') ==#'[Command Line]' ? expand('#:t:r:r:r') : expand('%:t:r:r:r'), '\%(_\(.\)\)', '\u\1', 'g')`${0}#}}}
 
 snippet line
 abbr 80 comment line
@@ -64,3 +54,11 @@ abbr 80 sub comment line
 options word
     `g:NeosnippetSnippets_SubCommentLine()`
     ${0}
+
+snippet feature
+options word
+    feature${0}
+
+snippet enhancement
+options word
+    enhancement${0}

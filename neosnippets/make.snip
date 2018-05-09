@@ -1,8 +1,50 @@
-snippet     CFLAGS
-options     head
-  CFLAGS=-Wall -g ${0: -llua -lzeromq}
+snippet PHONY
+abbr PHONY target
+    .PHONY: ${1:#:target}
+    $1: ${0}
 
-snippet     clean:
-options     head
-  clean:
-    rm -f ${0}
+# @ が推奨されており .SILENT は廃れた機能とのこと。#{{{
+# snippet SILENT
+# abbr silent, phony target
+#     .PHONY: ${1:#:target}
+#     .SILENT: $1
+#     $1: ${0}#}}}
+
+snippet file_check
+abbr if a file exists then ...
+    ifneq ($(wildcard ${1:file_path}),)
+        ${2:#:file exists}
+    else
+        ${3:#:file does not exist}
+    endif
+    ${0}
+
+snippet av@
+abbr ターゲットファイル名
+options word
+    $@
+
+snippet av<
+abbr 最初の依存するファイル名
+options word
+    $<
+
+snippet av?
+abbr ターゲットより新しいすべての依存するファイル名
+options word
+    $?
+
+snippet av^
+abbr すべての依存するファイルの名前
+options word
+    $^
+
+snippet av+
+abbr Makefile と同じ順番の依存するファイルの名前
+options word
+    $+
+
+snippet av*
+abbr サフィックスを除いたターゲットの名前
+options word
+    $*
