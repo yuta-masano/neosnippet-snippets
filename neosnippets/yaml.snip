@@ -79,7 +79,7 @@ snippet file
         src: ${2:#:sym link sorce}
         owner: ${3:#:owner}
         group: ${4:#:group}
-        mode: '${5:0600}'
+        mode: "${5:0600}"
         state: ${6:#:file | link | directory | absent}
     ${0}
 
@@ -88,7 +88,7 @@ abbr ret は dict 構造なので注意
     find:
       paths: ${1:#:search path}
       file_type: ${2:#:file | directory}
-      patterns: ${3:#:'*'}
+      patterns: ${3:#:"*"}
       use_regex: ${4:#:no(*) | yes}
     register: ret # ret.files => [{path: ..., mode: ..., checksum: ...}, { ... }]
     ${0}
@@ -101,7 +101,7 @@ options word
     ${0}
 
 snippet copy
-abbr src に環境変数が使えないので {{ lookup('env', 'HOME') }} すること
+abbr src に環境変数が使えないので {{ lookup("env", "HOME") }} すること
     copy:
       dest: ${1:#:target file}
       src: ${2:#:src file}
@@ -109,7 +109,7 @@ abbr src に環境変数が使えないので {{ lookup('env', 'HOME') }} する
     ${0}
 
 snippet get_url
-abbr dest に環境変数が使えないので {{ lookup('env', 'HOME') }} すること
+abbr dest に環境変数が使えないので {{ lookup("env", "HOME") }} すること
     get_url:
       dest: ${1:#:absolute path}
       url: ${2:#:url}
@@ -133,22 +133,21 @@ snippet synchronize
 
 snippet yum
     yum:
-      name: ${1:#:target pash or 'url'}
+      name: ${1:#:target pash or "url"}
       state: ${2:#:present (*)| latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
     ${0}
 
-snippet apt
-    apt:
+snippet package
+    package:
       name: ${1:#:package name}
-      deb: ${2:#:.deb package path or 'url'}
-      state: ${3:#:present (*)| latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
+      state: ${3:#:present | latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
     ${0}
 
 snippet debug
 options word
     debug:
       var: ${1:#:var}
-      msg: '{{ ${2:#:var} }}'
+      msg: "{{ ${2:#:var} }}"
     ${0}
 
 snippet blockinfile
@@ -200,7 +199,7 @@ abbr files/ が起点 | * が使える | {{ item }} でファイルパスが入�
 #===============================================================================
 snippet lookup
 options word
-    "{{ lookup('${1:env}', '${2:name}') }}${0}"
+    '{{ lookup("${1:env}", "${2:name}") }}${0}'
 
 #===============================================================================
 #  Conventional Code
@@ -232,7 +231,7 @@ abbr find コマンドでターゲットを列挙する
 
     - name: ${4:#:対象に実施する内容}
         ${5:#:module}
-      with_items: '{{ file_list.stdout_lines }}'
+      with_items: "{{ file_list.stdout_lines }}"
 
     ${0}
 
@@ -312,7 +311,7 @@ abbr command の結果でタスクを変化させる
 
     - name: `expand('%:t')` | ${3:#:description}
       ${4:#:task what you wanto do}
-      when: '{{ ret.stdout_lines | length }} != 0'
+      when: "{{ ret.stdout_lines | length }} != 0"
       # ret: {
       #     changed: true,
       #     cmd: [
@@ -331,5 +330,39 @@ abbr command の結果でタスクを変化させる
       #     ],
       #     warnings: []
       # }
+
+    ${0}
+
+snippet regex_replace
+abbr jinja2 filter（'...' の場合バックスラッシュは 2 倍必要））
+    regex_replace("${1:#:regex}", "${2:#:replace}")${0}
+
+snippet source_ building
+abbr ソースからインストールするスニペット
+    - name: 依存パッケージをインストール
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ prerequisite_packages }}"
+
+    - name: ソースコードを取得
+      git:
+        repo: "{{ ${1:git_repo_url} }}"
+        dest: "{{ ${2:local_repo_path} }}"
+
+    - name: コンパイル
+      command:
+        ./configure {{ configure_options | join(" ") }}
+      args:
+        chdir: "{{ $2 }}"
+
+    - name: ビルド
+      make
+        chdir: "{{ $2 }}"
+
+    - name: インストール
+      make
+        target: install
+        chdir: "{{ $2 }}"
 
     ${0}

@@ -20,7 +20,7 @@ abbr #!/bin/bash ...
 	#===============================================================================
 	#          FILE: `expand('%:t')`
 	#
-	#         USAGE: `expand('%:t')` [OPTION] [ACTION]
+	#         USAGE: `expand('%:t')` OPTION ACTION
 	#
 	#   DESCRIPTION: ${1:---}
 	#
@@ -71,11 +71,7 @@ abbr #!/bin/bash ...
 	#===============================================================================
 	#  MAIN SCRIPT
 	#===============================================================================
-	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@")"
-	if [ $? -ne 0 ]; then
-		print_usage_exit
-	fi
-
+	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@" || exit 1)"
 	eval set -- "$args"
 	while true; do
 		case "\$1" in
@@ -97,12 +93,12 @@ abbr #!/bin/bash ...
 	done
 
 snippet shebang_well_behaved
-abbr #!/bin/bash ...
-	#!/bin/bash
+abbr #!/usr/bin/env bash ...
+	#!/usr/bin/env bash
 	#===============================================================================
 	#          FILE: `expand('%:t')`
 	#
-	#         USAGE: `expand('%:t')` [OPTION] [ACTION]
+	#         USAGE: `expand('%:t')` OPTION ACTION
 	#
 	#   DESCRIPTION: ${1:---}
 	#
@@ -139,8 +135,7 @@ abbr #!/bin/bash ...
 		exit 192
 	fi
 
-	echo "$BASH_VERSION"                                              \
-		| grep --quiet --extended-regexp '[0-3]+\.[0-9]+\.[0-9]' && :
+	echo "$BASH_VERSION" | grep -q '^[0-3]+\' && :
 	if [ $? -eq 0 ]; then
 		printf "$SCRIPT_NAME:$LINENO: BASH version must be >= 4.0.0\n" >&2
 		exit 192
@@ -174,11 +169,7 @@ abbr #!/bin/bash ...
 	#===============================================================================
 	#  MAIN SCRIPT
 	#===============================================================================
-	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@")"
-	if [ $? -ne 0 ]; then
-		print_usage_exit
-	fi
-
+	args="$(getopt -o h,m: -l help,mode: -n "$SCRIPT_NAME" -- "$@" || exit 1)"
 	eval set -- "$args"
 	while true; do
 		case "\$1" in
@@ -219,16 +210,16 @@ abbr 直前のコマンドが失敗することを期待
 snippet force_success
 abbr 強制的に終了ステータスを 0 にする
 options word
+	|| :${0}
 	# ret=$(... || :) したい場合は
 	# local ret=$(... || :) しなければならない。
-	|| :${0}
 
 snippet force_execute
 abbr コマンドが失敗しても errexit せずに進むが終了ステータスは取りたい
 options word
+	&& :${0}
 	# ret=$(... && :) したい場合は
 	# local ret=$(... && :) しなければならない。
-	&& :${0}
 
 snippet basenames
 	${1:var}="${2:/path/to/file}"
@@ -240,6 +231,7 @@ snippet basenames
 	${0}
 
 snippet tmp
+abbr tmp file
 	${1:TMPFILE}="$(mktemp --tmpdir=${2:/tmp} --suffix=".${3:${SCRIPT_NAME%%.*\}}")"
 	trap 'rm -f $2/tmp.*."$3"'         0        # EXIT
 	trap 'rm -f $2/tmp.*."$3"; exit 1' 1 2 3 15 # HUP QUIT INT TERM
@@ -250,7 +242,7 @@ abbr 可搬性の高い多重起動防止処理
 	# exec 9< "\$0"
 	# perl -mFcntl=:flock -e "open(LOCK,'<&=9');exit(!flock(LOCK,LOCK_EX|LOCK_NB))" \
 	# 	|| { echo "\$0: duplicate process." >&2; exit 1; }
-	${1}
+	${0}
 	exec {lock_fd}< "\$0"
 	flock --nonblock ${lock_fd} || { echo "\$0: duplicate process." >&2; exit 1; }
 
@@ -266,31 +258,44 @@ abbr 引数が 1 以上を保証
 		${0}
 	fi
 
-snippet step_in
-abbr スクリプトをステップ実行
-	trap 'read -p "\$0($LINENO) $BASH_COMMAND"' DEBUG
+snippet debug
+abbr デバッグプリント
+	#### Fail on unset variables, command errors and pipe fail, print command and
+	#### argument expassin processing, verbose mode.
+	# set -o nounset -o errexit -o pipefail -o xtrace -o verbose
+	#### everything output into console and file
+	# exec &> >(tee /tmp/\${0##*/}-$(date '+%F-%H%M%S').log)
+
+	#### stepwise execution
+	# trap 'read -p "\$0($LINENO) $BASH_COMMAND"' DEBUG
 	${0}
 
 snippet readline_file
 abbr  ファイルを一行ずつ読んで処理をする
-	while read ${1:line}
+	while read ${1:line}; do
 		${0}
-	do
-	done < ${2:#:filepath}
-
-snippet readline_file
-abbr  ファイルを一行ずつ読んで処理をする
-	while read ${1:line}
-		${0}
-	do
-	done < ${2:#:filepath}
+	done <${2:#:filepath}
 
 snippet readline_herestring
 abbr  ヒアストリング結果を一行ずつ読んで処理をする (only bash)
-	while read ${1:line}
+	while read ${1:line}; do
 		${0}
-	do
-	done <<< ${2:#:variable}
+	done <<<${2:#:variable}
+
+snippet readline_comand_result
+abbr  プロセス置換でコマンド実行結果を一行ずつ読んで処理をする (only bash)
+	while read ${1:line}; do
+		${0}
+	done < <(${2:#:command})
+
+snippet readline_comand_result2
+abbr  パイプ経由でコマンド実行結果を一行ずつ読んで処理をする
+	foo=''
+	ls | while read line; do
+		foo="$line"
+	done < <(${2:#:command})
+	# パイプから先は別プロセスが fork されるので、ループ内で変数代入しても空になる。
+	echo "$foo"
 
 #===============================================================================
 #  Comment
@@ -743,42 +748,47 @@ options word
 snippet io_&>>
 abbr append STDOUT and STDERR to file
 options word
-	&>> ${0:#:filepath}
+	&>>${0:#:filepath}
+
+snippet io_exec
+abbr STDOUT と STDERR をファイルに転送
+options word
+	exec &>>${0:#:filepath}
 
 snippet io_>>
 abbr append STDOUT to file
 options word
-	>> ${0:#:filepath}
+	>>${0:#:filepath}
 
 snippet io_2>>
 abbr append STDERR to file
 options word
-	2>> ${0:#:filepath}
+	2>>${0:#:filepath}
 
 snippet io_n>>
 abbr append file descr n to file
 options word
-	${1:#:descr}>> ${0:#:filepath}
+	${1:#:descr}>>${0:#:filepath}
 
 snippet io_&>
 abbr direct STDOUT and STDERR to file
 options word
-	&> ${0:#:filepath}
+	&>${0:#:filepath}
 
 snippet io_>
 abbr direct STDOUT to file
 options word
-	> ${0:#:filepath}
+	>${0:#:filepath}
 
 snippet io_2>
 abbr direct STDERR to file
 options word
-	2> ${0:#:filepath}
+	2>${0:#:filepath}
 
 snippet io_n>
 abbr direct file descr n to file
 options word
-	${1:#:descr}> ${0:#:filepath}
+	${1:#:descr}>${0:#:filepath}
 
 snippet io_>&2
 abbr redirect STDOUT to STDERR
@@ -829,6 +839,29 @@ snippet io_<
 abbr take STDIN from file
 options word
 	< ${0:#:filepath}
+
+#===============================================================================
+#  Arguments
+#===============================================================================
+snippet arg_0
+abbr ファイル名
+options word
+	$0${0}
+
+snippet arg_num
+abbr 引数の個数
+options word
+	$#${0}
+
+snippet arg_@
+abbr 引数ごとにダブルクォート処理される
+options word
+	"$@"${0}
+
+snippet arg_*
+abbr 引数がまとめて一つでダブルクォート処理される
+options word
+	"$*"${0}
 
 #===============================================================================
 #  Parameter Substitution
@@ -1062,7 +1095,7 @@ abbr var-assign
 
 snippet case
 	case "$${1:{name\}}" in
-		${2:pattern*})
+		${2:pattern})
 			${0}
 			;;
 		*)

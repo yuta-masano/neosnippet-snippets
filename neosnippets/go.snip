@@ -106,6 +106,37 @@ abbr var ( ... )
         ${0}
     )
 
+snippet var_struct
+abbr 無名構造体型を変数宣言（ポインタは不可）
+   var ${1:name} struct {
+        ${2:field}
+        ${0}
+   }
+   // $1 の中身はゼロ値で初期化済み（のはず）。
+
+snippet var_sleced_struct
+abbr 無名構造体型のスライスを変数宣言（ポインタは不可）
+   var ${1:name} []struct {
+        ${2:field}
+        ${0}
+   }
+   // $1 の中身は nil なので注意。
+   // name = make([]struct { ... }, length, capacity) と初期化が必要。
+
+snippet var_struct_with_initialize
+abbr 無名構造体型を初期化（ポインタが使える）
+   var ${1:name} = &struct {
+        ${2:field...}
+   }{ ${3:field: val, ...} }
+   ${0}
+
+snippet var_sleced_struct_with_initialize
+abbr 無名構造体型のスライスを初期化（要素となる構造体はポインタか不明）
+   var ${1:name} = []struct {
+        ${2:field...}
+   }{ { ${3:fieldl val, ...} }, { ${4:fieldl val, ...} } ... }
+   ${0}
+
 snippet const
 abbr const ... // bool, rune, int, float, imaginary, str
     const ${1:name} ${2:#:Type} = ${3:value}
@@ -180,23 +211,6 @@ options word
         ${4:#:return}
     }(${3:#:args})
 
-snippet func_test
-abbr test function
-    func Test${1:name}(t *testing.T) {
-        t.Parallel()
-
-        testCases := []struct {
-            input  string
-            expect string
-        }{
-            {
-             input:  "",
-             expect: "",
-            },
-        }
-        ${0}
-    }
-
 snippet func_cobra
 abbr cobra command function
     func run${1:}(cmd *cobra.Command, args []string) error {
@@ -216,18 +230,26 @@ abbr short variable declaration
 
 snippet make_map
 abbr make returns reference type
-options word
-    ${1:var} := make(map[${2:Type}] ${3:TYPE})${4:#:{ key: value, key: value ... \}}
+    ${1:name} := make(map[${2:Type}]${3:TYPE})${4:#:{ key: value, key: value ... // 一緒に初期化したければ \}}
+    ${0}
+
+snippet make_sliced_map
+abbr map の slice は明示的に初期化する必要がある
+    ${1:name} := make([]map[${2:Type}]${3:TYPE}, ${4:length}${5:#: ,capacity})
+	for i := range qaDatum {
+		$1[i] = map[$2]$3{}
+	}
+    ${0}
 
 #===============================================================================
 #  Function
 #===============================================================================
 snippet printf
-alias pf
+alias ff
   fmt.Printf("${1}\n"${2:})
 
 snippet println
-alias pl
+alias fl
   fmt.Println(${0:TARGET})
 
 snippet ddump
@@ -245,9 +267,33 @@ abbr defer func() { ... }
         ${0}
     }()
 
+#===============================================================================
+#  Testing
+#===============================================================================
+snippet t_func
+abbr test function
+    func Test${1:name}(t *testing.T) {
+        t.Parallel()
+
+        testCases := []struct {
+            input  string
+            expect string
+        }{
+            {
+             input:  "",
+             expect: "",
+            },
+        }
+        ${0}
+        for i, c := range testCases {
+            if /* test result */ {
+                t.Fatalf("wrong test [%d]: expected=%s, but got=%s", i+1, c.expect, /* result */)
+            }
+    }
+
 snippet t_fatalef
 options word
-    t.Fatalf("wrong ${1:test}: expected=%s, but got=%s", ${2:expected}, ${3:got})
+    t.Fatalf("wrong ${1:test} [%d]: expected=%s, but got=%s", i+1, ${2:expected}, ${3:got})
     ${0}
 
 snippet t_fatale
