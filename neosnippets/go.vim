@@ -1,52 +1,52 @@
 " From http://pocke.hatenablog.com/entry/2015/12/20/133445
 " error チェックスニペット。
 function! g:NeosnippetSnippets_Goiferr() abort
-    let re_func = '\vfunc'
-    let re_type = '%(%([.A-Za-z0-9*]|\[|\]|%(%(struct)|%(interface)\{\}))+)'
-    let re_rcvr = '%(\s*\(\w+\s+' . re_type . '\))?'
-    let re_name = '%(\s*\w+)?'
-    let re_arg  = '\(%(\w+%(\s+%(\.\.\.)?' . re_type . ')?\s*,?\s*)*\)'
+  let re_func = '\vfunc'
+  let re_type = '%(%([.A-Za-z0-9*]|\[|\]|%(%(struct)|%(interface)\{\}))+)'
+  let re_rcvr = '%(\s*\(\w+\s+' . re_type . '\))?'
+  let re_name = '%(\s*\w+)?'
+  let re_arg  = '\(%(\w+%(\s+%(\.\.\.)?' . re_type . ')?\s*,?\s*)*\)'
 
-    let re_ret_v = '%(\w+)'
-    let re_ret  = '%(\s*\(?(\s*\*?[a-zA-Z0-9_. ,]+)\)?\s*)?'
-    let re_ret_body = '%(' . re_ret_v . '|%(' . re_ret_v  . '\s*' . re_type . ')|' . re_type . '\s*,?\s*)*'
-    let re_ret  = '%(\s*\(?\s*(' . re_ret_body . ')\)?\s*)?'
-    let re = re_func . re_rcvr . re_name . re_arg . re_ret . '\{'
+  let re_ret_v = '%(\w+)'
+  let re_ret  = '%(\s*\(?(\s*\*?[a-zA-Z0-9_. ,]+)\)?\s*)?'
+  let re_ret_body = '%(' . re_ret_v . '|%(' . re_ret_v  . '\s*' . re_type . ')|' . re_type . '\s*,?\s*)*'
+  let re_ret  = '%(\s*\(?\s*(' . re_ret_body . ')\)?\s*)?'
+  let re = re_func . re_rcvr . re_name . re_arg . re_ret . '\{'
 
-    let lnum = line('.')
-    let ret = ""
-    while lnum > 0
-        let lnum -= 1
+  let lnum = line('.')
+  let ret = ""
+  while lnum > 0
+    let lnum -= 1
 
-        let ma = matchlist(getline(lnum), re)
-        if empty(ma)
-            continue
-        endif
-        let ret = ma[1]
-        break
-    endwhile
-
-    if ret =~ '\v^\s*$'
-        return '${1}'
+    let ma = matchlist(getline(lnum), re)
+    if empty(ma)
+      continue
     endif
+    let ret = ma[1]
+    break
+  endwhile
 
-    let rets = []
-    for t in split(ret, ',')
-        if t =~# '\v^\s*error\s*$'
-            let v = 'err'
-        elseif t =~# '\v^\s*string\s*$'
-            let v = '""'
-        elseif t =~# '\v^\s*int\d*\s*$'
-            let v = '0'
-        elseif t =~# '\v^\s*bool\s*$'
-            let v = 'false'
-        else
-            let v = 'nil'
-        endif
-        call add(rets, v)
-    endfor
+  if ret =~ '\v^\s*$'
+    return '${0}'     " 返却値が定義されていない関数はここで終わる。
+  endif
 
-    return '${1:' . join(rets, ", ") . '}'
+  let rets = []
+  for t in split(ret, ',')
+    if t =~# '\v^\s*error\s*$'
+      let v = '$1'    " 返却値が error の場合、iferr スニペットで予約した ${1:err} に対応させる。
+    elseif t =~# '\v^\s*string\s*$'
+      let v = '"${2\}"'    " 返却値が文字列の場合は任意の文字列を入れさせる。
+    elseif t =~# '\v^\s*int\d*\s*$'
+      let v = '0'
+    elseif t =~# '\v^\s*bool\s*$'
+      let v = 'false'
+    else
+      let v = 'nil'
+    endif
+    call add(rets, v)
+  endfor
+
+  return 'return ${1:' . join(rets, ", ") . '${0\}}'
 endfunction
 
 " 構造体を new するメソッドを作成する。
