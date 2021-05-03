@@ -12,8 +12,75 @@ abbr package main\nimport fmt...
     )
 
     func main() {
-        spew.Dump("Hello, world\n")
-        ${0}
+        // 単純な変数の場合:
+        var i int
+        var pi *int // *型 として、ポインタ変数を「宣言」している。
+
+        i = 100
+        spew.Printf("&i = %#+v\n", &i) // &i = (*int)(0xc00001c290)100
+
+        // ポインタ変数にアドレス番地を代入。
+        pi = &i
+        spew.Printf("&i = %#+v pi = %#+v\n", &i, pi) // &i = (*int)(0xc00001c290)100 pi = (*int)(0xc00001c290)100
+
+        // *ポインタ変数を「使って」間接参照しつつ、101 を代入。pi = 101 は NG。pi に入るのはアドレス番地だから。
+        *pi = 101
+        spew.Printf("&i = %#+v pi = %#+v\n", &i, pi) // &i = (*int)(0xc00001c290)101 pi = (*int)(0xc00001c290)101
+
+        // 構造体の場合:
+        var s struct {
+            i  int
+            pi *int
+        }
+        var ps *struct {
+            i  int
+            pi *int
+        }
+
+        s.i = 200
+        s.pi = &s.i   // 構造体のフィールドにアドレス番地を渡すにはこれでいいようだ。
+        spew.Dump(&s) // しかし、構造体のフィールドのアドレス番地には直接アクセスできない？
+        // (*struct { i int; pi *int })(0xc0000102d0)({
+        //  i: (int) 200,
+        //  pi: (*int)(0xc0000102d0)(<already shown>)
+        // })
+        spew.Printf("s.i = %#+v s.pi = %#+v\n", &s.i, s.pi)
+        // s.i = (*int)(0xc0000102d0)200 s.pi = (*int)(0xc0000102d0)200
+        s.i = 201                                           // ちゃんと共変する。
+        spew.Printf("s.i = %#+v s.pi = %#+v\n", &s.i, s.pi) // s.i = (*int)(0xc0000102d0)201 s.pi = (*int)(0xc0000102d0)201
+
+        ps = &s
+        spew.Dump(&s, ps) // 同一のアドレス番地となる。
+        // (*struct { i int; pi *int })(0xc0000102d0)({
+        //  i: (int) 201,
+        //  pi: (*int)(0xc0000102d0)(<already shown>)
+        // })
+        // (*struct { i int; pi *int })(0xc0000102d0)({
+        //  i: (int) 201,
+        //  pi: (*int)(0xc0000102d0)(<already shown>)
+        // })
+        ps.i = 300 // 構造体のポインタ変数は * が無くても間接参照になる。
+        spew.Dump(&s, ps)
+        // 共変した。
+        // (*struct { i int; pi *int })(0xc0000102d0)({
+        //  i: (int) 300,
+        //  pi: (*int)(0xc0000102d0)(<already shown>)
+        // })
+        // (*struct { i int; pi *int })(0xc0000102d0)({
+        //  i: (int) 300,
+        //  pi: (*int)(0xc0000102d0)(<already shown>)
+        // })
+        (*ps).i = 301 // 正式な書き方はこう。
+        spew.Dump(&s, ps)
+        //     共変した。
+        // (*struct { i int; pi *int })(0xc0000102d0)({
+        //  i: (int) 301,
+        //  pi: (*int)(0xc0000102d0)(<already shown>)
+        // })
+        // (*struct { i int; pi *int })(0xc0000102d0)({
+        //  i: (int) 301,
+        //  pi: (*int)(0xc0000102d0)(<already shown>)
+        // })
     }
 
 snippet closure
@@ -236,9 +303,9 @@ abbr make returns reference type
 snippet make_sliced_map
 abbr map の slice は明示的に初期化する必要がある
     ${1:name} := make([]map[${2:Type}]${3:TYPE}, ${4:length}${5:#: ,capacity})
-	for i := range qaDatum {
-		$1[i] = map[$2]$3{}
-	}
+    for i := range qaDatum {
+        $1[i] = map[$2]$3{}
+    }
     ${0}
 
 #===============================================================================
@@ -270,35 +337,37 @@ abbr defer func() { ... }
 #===============================================================================
 #  Testing
 #===============================================================================
-snippet t_func
+snippet func_test
 abbr test function
     func Test${1:name}(t *testing.T) {
         t.Parallel()
 
-        testCases := []struct {
-            input  string
-            expect string
+        tests := []struct {
+            in   string
+            want string
         }{
             {
-             input:  "",
-             expect: "",
+             in:   "",
+             want: "",
             },
         }
         ${0}
-        for i, c := range testCases {
-            if /* test result */ {
-                t.Fatalf("wrong test [%d]: expected=%s, but got=%s", i+1, c.expect, /* result */)
+        for i, tt := range tests {
+            got := /* test result */
+            if tt.want != got {
+                t.Fatalf("loop (%d), want = #v but got = %#v"+"\n",
+				i, tt.want, got)
             }
+        }
     }
 
 snippet t_fatalef
 options word
-    t.Fatalf("wrong ${1:test} [%d]: expected=%s, but got=%s", i+1, ${2:expected}, ${3:got})
-    ${0}
+    t.Fatalf("want = %#v but got = %#v"+"\n", ${2:want}, ${3:got})${0}
 
 snippet t_fatale
 options word
-    t.Fatal("${1:msg}")
+    t.Fatal(${1:err})
     ${0}
 
 #===============================================================================
@@ -310,10 +379,9 @@ snippet if
     }
 
 snippet iferr
-    if ${2:err} != nil {
-      return `g:NeosnippetSnippets_Goiferr()`
+    if ${1:err} != nil {
+        `g:NeosnippetSnippets_Goiferr()`
     }
-    ${3}
 
 snippet for
     for ${1:#:initialization;} ${2:#:condition;} ${3:#:post} {
@@ -326,14 +394,13 @@ abbr for range
         ${0:TARGET}
     }
 
-# snippet     switch
-# abbr        switch {}
-# options     head
-#   switch ${1:#:v} {
-#   case ${2:#:condition}:
-#     ${0:TARGET}
-#   }
-#
+snippet switch
+abbr switch {}
+  switch ${1:#:v} {
+      case ${2:#:condition}:
+          ${0:TARGET}
+  }
+
 # snippet     select
 # abbr        select {}
 # options     head

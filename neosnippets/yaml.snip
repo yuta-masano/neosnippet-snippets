@@ -2,367 +2,369 @@
 #  Top
 #===============================================================================
 snippet hosts
-    ${1:---}
-    - hosts: ${2:#:target host list}
-      become: yes
-      gather_facts: no
-      tasks:
-      ${0}
+	${1:---}
+	- hosts: ${2:#:host list}
+	  become: ${3:yes}
+	  gather_facts: ${4:no}
+	  tasks:
+	  ${0}
 
 snippet vars_prompt
-    vars_prompt:
-        - name: ${1:#:var_name}
-          prompt: ${2:#:message}
-          default: ${3:#:default value}
-          private: ${4:#:yes | no}
-    ${0}
+	vars_prompt:
+	    - name: ${1:#:var_name}
+	      prompt: ${2:#:message}
+	      default: ${3:#:default value}
+	      private: ${4:#:yes | no}
+	${0}
 
 snippet include
-    - include: ${1:#:file_path}
-    ${0}
+	- include: ${1:#:file_path}
+	${0}
 
 #===============================================================================
 #  Variable
 #===============================================================================
-snippet variable
-alias {}
-options word
-    {{ ${1:var} }}${0}
-
 snippet role_path
 options word
-    {{ role_path }}${0}
+	{{ role_path }}${0}
 
 #===============================================================================
 #  Module
 #===============================================================================
 snippet name
-    - name: `expand('%:t')` | ${1:#:description}
-      ${0}
+	- name: ${1:`expand('%:t')` | }${2:#:description}
 
 snippet service
-    service:
-        name: ${1:#:service name}
-        state: ${2:#:started | stopped | restarted | reloaded}
-        enabled: ${3:#:yes | no}
-    ${0}
+	service:
+	    name: ${1:#:service name}
+	    state: ${2:#:started | stopped | restarted | reloaded}
+	    enabled: ${3:#:yes | no}
+	${0}
 
 snippet command
 abbr $HOME, <, >, ;, |, & do not work!
-    command:
-        ${1:#:command}
-    args:
-        chdir: ${2:#:path} # $2 でコマンドを実行
-        creates: ${3:#:path} # $3 があったらスキップ
-        removes: ${4:#:path} # $4 がなかったらスキップ
-    ${0}
+	command:
+	    ${1:#:command}
+	args:
+	    chdir: ${2:#:path} # $2 でコマンドを実行
+	    creates: ${3:#:path} # $3 があったらスキップ
+	    removes: ${4:#:path} # $4 がなかったらスキップ
+	${0}
 
 snippet shell
-    shell: |-
-        ${1:#:command}
-    args:
-        chdir: ${2:#:path} # $2 でコマンドを実行
-        creates: ${3:#:path} # $3 があったらスキップ
-        removes: ${4:#:path} # $4 がなかったらスキップ
-    ${0}
+	shell: |-
+	    ${1:#:command}
+	args:
+	    chdir: ${2:#:path} # $2 でコマンドを実行
+	    creates: ${3:#:path} # $3 があったらスキップ
+	    removes: ${4:#:path} # $4 がなかったらスキップ
+	${0}
 
 snippet confirm
-    - name: confirm
-      pause:
-        prompt: ${1:#:message}
-      register: ${2:ret}
-    ${0}
+	- name: `expand('%:t')` | confirm
+	  pause:
+	    prompt: ${1:#:message}
+	  register: ${2:ret}
+	${0}
 
 snippet file
-    file:
-        path: ${1:#:target file}
-        src: ${2:#:sym link sorce}
-        owner: ${3:#:owner}
-        group: ${4:#:group}
-        mode: "${5:0600}"
-        state: ${6:#:file | link | directory | absent}
-    ${0}
+	file:
+	  path: ${1:#:path to the target}
+	  src: ${2:#:sym link sorce}
+	  owner: ${3:#:owner}
+	  group: ${4:#:group}
+	  mode: "${5:0600}"
+	  state: ${6:#:file | link | directory | absent}
+	  recurse: ${5:#:no(*) | yes} # directory を再帰的に処理する場合は yes
+	${0}
 
 snippet find
 abbr ret は dict 構造なので注意
-    find:
-      paths: ${1:#:search path}
-      file_type: ${2:#:file | directory}
-      patterns: ${3:#:"*"}
-      use_regex: ${4:#:no(*) | yes}
-    register: ret # ret.files => [{path: ..., mode: ..., checksum: ...}, { ... }]
-    ${0}
+	find:
+	  paths: ${1:#:search path}
+	  file_type: ${2:#:file | directory}
+	  patterns: '${3:#:*}' # ダブルクォートにすると \\ を 2 倍にする必要がある
+	  use_regex: ${4:#:no(*) | yes}
+	  recurse: ${5:#:no(*) | yes}
+	register: ret # ret.files => [{path: ..., mode: ..., checksum: ...}, { ... }]
+	${0}
 
 snippet template
 options word
-    template:
-      dest: ${1:#:target file}/${2:#:name}
-      src: $2.j2
-    ${0}
+	template:
+	  dest: ${1:#:path to the target dir}/${2:#:name}
+	  src: $2.j2
+	${0}
 
 snippet copy
 abbr src に環境変数が使えないので {{ lookup("env", "HOME") }} すること
-    copy:
-      dest: ${1:#:target file}
-      src: ${2:#:src file}
-      remote_sorc: ${3:#:no(*) | yes } # yes: ターゲットマシンのファイルを src にする
-    ${0}
+	copy:
+	  dest: ${1:#:path to the targete}
+	  src: ${2:#:src file}
+	  owner: ${3:#:owner}
+	  group: ${4:#:group}
+	  mode: "${5:0600}"
+	  remote_sorc: ${3:#:no(*) | yes } # yes: ターゲットマシンのファイルを src にする
+	${0}
 
 snippet get_url
 abbr dest に環境変数が使えないので {{ lookup("env", "HOME") }} すること
-    get_url:
-      dest: ${1:#:absolute path}
-      url: ${2:#:url}
-    ${0}
+	get_url:
+	  dest: ${1:#:absolute path}
+	  url: ${2:#:url}
+	  owner: ${3:#:owner}
+	  group: ${4:#:group}
+	  mode: "${5:0600}"
+	${0}
 
 snippet unarchive
-    unarchive:
-      dest: ${1:#:directory path}
-      src: ${2:#:parh or url}
-      remote_src: ${3:#:no(*) | yes} # yes: src を url から DL にする
-      list_files: yes
-    ${0}
+	unarchive:
+	  dest: ${1:#:directory path}
+	  src: ${2:#:parh or url}
+	  remote_src: ${3:#:no(*) | yes} # yes: src を url から DL にする
+	  list_files: yes
+	${0}
 
 snippet synchronize
-    synchronize:
-      dest: ${1:#:target path}
-      src:  ${2:#:sorce path}
-      rsync_opts:
-        - --remove-source-files
-    ${0}
+	synchronize:
+	  dest: ${1:#:path to the target}
+	  src:  ${2:#:sorce path}
+	  rsync_opts:
+	    - --remove-source-files
+	${0}
 
 snippet yum
-    yum:
-      name: ${1:#:target pash or "url"}
-      state: ${2:#:present (*)| latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
-    ${0}
+	yum:
+	  name: ${1:#:name or pash or "url"}
+	  state: ${2:#:present (*)| latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
+	${0}
 
 snippet package
-    package:
-      name: ${1:#:package name}
-      state: ${3:#:present | latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
-    ${0}
+	package:
+	  name: ${1:#:package name}
+	  state: ${3:#:present | latest | absent} # latest は常に最新のバージョンを取得しようとするので冪等性が崩れる。バージョン固定したい場合は present が無難。
+	${0}
 
 snippet debug
 options word
-    debug:
-      var: ${1:#:var}
-      msg: "{{ ${2:#:var} }}"
-    ${0}
+	debug:
+	  var: ${1:#:var}
+	  msg: "{{ ${2:#:var} }}"
+	${0}
 
 snippet blockinfile
-    blockinfile:
-    path: ${1:#:target path}
-    block: |
-      ${2:#:block contents}
-    create: yes # ファイルが存在していなかったら作成する
-    ${0}
+	blockinfile:
+	path: ${1:#:path to the target}
+	block: |
+	  ${2:#:block contents}
+	create: yes # ファイルが存在していなかったら作成する
+	${0}
+
+snippet systemd
+	systemd:
+	  name: ${1:#:name}
+	  state: ${2:#:reloaded | restarted | started | stopped}
+	  daemon_reload: ${3:#:no(*) | yes}
+	  enabled: ${4:#:yes | no}
 
 #===============================================================================
 #  Condition
 #===============================================================================
 snippet register
-    register: ${1:ret}
-    ${0}
+	register: ${1:ret}
+	${0}
 
 snippet when
-    when: ${1:#:condition}
-    ${0}
+	when: ${1:#:condition}
+	${0}
 
 snippet when_and
 abbr and 条件はリストで指定できる
-    when:
-      - ${1:#:condition}
-    ${0}
+	when:
+	  - ${1:#:condition}
+	${0}
 
 snippet when_ret
 abbr ret をフィルタリング
-    when: ${1:ret} | ${2:#:ok | changed | failed | skipped}
-    ${0}
+	when: ${1:ret} | ${2:#:ok | changed | failed | skipped}
+	${0}
 
 #===============================================================================
 #  Loop
 #===============================================================================
 snippet with_items
-      with_items:
-        - ${1:#:item}
-        ${0}
+	  with_items:
+	    - ${1:#:item}
+	    ${0}
 
 snippet with_fileglob
 abbr files/ が起点 | * が使える | {{ item }} でファイルパスが入る
-    with_fileglob:
-        - ${1:#:item}
-        ${0}
+	with_fileglob:
+	    - ${1:#:item}
+	    ${0}
 
 #===============================================================================
 #  Grab
 #===============================================================================
 snippet lookup
 options word
-    '{{ lookup("${1:env}", "${2:name}") }}${0}'
+	"{{ lookup('${1:env}', '${2:name}') }}${0}"
 
 #===============================================================================
 #  Conventional Code
 #===============================================================================
 snippet reboot
 abbr reboot tasks
-    - name: サーバを再起動する
-      command:
-        reboot
+	- name: サーバを再起動する
+	  command:
+	    reboot
 
-    - name: サーバが起動完了するまで（無理矢理）待機する
-      command:
-        ssh {{ inventory_hostname }} 'exit'
-      register: ret
-      until: ret.rc == 0
-      retries: 30
-      delay: 10
-      delegate_to: 127.0.0.1
-      become: no
+	- name: サーバが起動完了するまで（無理矢理）待機する
+	  command:
+	    ssh {{ inventory_hostname }} 'exit'
+	  register: ret
+	  until: ret.rc == 0
+	  retries: 30
+	  delay: 10
+	  delegate_to: 127.0.0.1
+	  become: no
 
-    ${0}
-
-snippet enum
-abbr find コマンドでターゲットを列挙する
-    - name: ${1:ファイル}を列挙する
-      command:
-        find ${2:#:path} -type ${3:f}
-      register: file_list
-
-    - name: ${4:#:対象に実施する内容}
-        ${5:#:module}
-      with_items: "{{ file_list.stdout_lines }}"
-
-    ${0}
+	${0}
 
 snippet local_stat
 abbr local のファイルの有無でタスクを変化させる
-    - name: `expand('%:t')` | ${1:#:description}
-      ${2:#:task what you wanto do}
-      with_first_found: # paths[0]/files[...], paths[1]/files[...], ...
-        - files:
-          - ${3:#:file_name}
-        - paths:
-          - ${4:#:directory_name}
-          skip: ${5:#:False(*) | True} # True = ファイルが存在しなければエラー
+	- name: `expand('%:t')` | ${1:#:description}
+	  ${2:#:task what you wanto do}
+	  with_first_found: # paths[0]/files[...], paths[1]/files[...], ...
+	    - files:
+	      - ${3:#:file_name}
+	    - paths:
+	      - ${4:#:directory_name}
+	      skip: ${5:#:False(*) | True} # True = ファイルが存在しなければエラー
 
-    ${0}
+	${0}
 
 snippet remote_stat
 abbr remote のファイルの有無でタスクを変化させる
-    - name: `expand('%:t')` | ${1:ファイル}の状態を確認する
-      stat:
-        path: ${2:#:path}
-      register: ret
+	- name: `expand('%:t')` | ${1:ファイル}の状態を確認する
+	  stat:
+	    path: ${2:#:path}
+	  register: ret
 
-    - name: `expand('%:t')` | ${3:#:description}
-      ${4:#:task what you wanto do}
-      when: ${5:#:not }ret.stat.exists
-      # ret: {
-      #     changed: false,
-      #     stat: {
-      #         atime: 1487494075.8834429,
-      #         ctime: 1487394697.2800586,
-      #         dev: 64512,
-      #         executable: true,
-      #         exists: true,
-      #         gid: 0,
-      #         gr_name: "root",
-      #         inode: 1313398,
-      #         isblk: false,
-      #         ischr: false,
-      #         isdir: false,
-      #         isfifo: false,
-      #         isgid: false,
-      #         islnk: true,
-      #         isreg: false,
-      #         issock: false,
-      #         isuid: false,
-      #         lnk_source: "/opt/firefox-45.5.0esr",
-      #         mode: "0777",
-      #         mtime: 1487394697.2800586,
-      #         nlink: 1,
-      #         path: "/opt/firefox",
-      #         pw_name: "root",
-      #         readable: true,
-      #         rgrp: true,
-      #         roth: true,
-      #         rusr: true,
-      #         size: 22,
-      #         uid: 0,
-      #         wgrp: true,
-      #         woth: true,
-      #         writeable: true,
-      #         wusr: true,
-      #         xgrp: true,
-      #         xoth: true,
-      #         xusr: true
-      #     }
-      # }
+	- name: `expand('%:t')` | ${3:#:description}
+	  ${4:#:task what you wanto do}
+	  when: ${5:#:not }ret.stat.exists
+	  # ret: {
+	  #     changed: false,
+	  #     stat: {
+	  #         atime: 1487494075.8834429,
+	  #         ctime: 1487394697.2800586,
+	  #         dev: 64512,
+	  #         executable: true,
+	  #         exists: true,
+	  #         gid: 0,
+	  #         gr_name: "root",
+	  #         inode: 1313398,
+	  #         isblk: false,
+	  #         ischr: false,
+	  #         isdir: false,
+	  #         isfifo: false,
+	  #         isgid: false,
+	  #         islnk: true,
+	  #         isreg: false,
+	  #         issock: false,
+	  #         isuid: false,
+	  #         lnk_source: "/opt/firefox-45.5.0esr",
+	  #         mode: "0777",
+	  #         mtime: 1487394697.2800586,
+	  #         nlink: 1,
+	  #         path: "/opt/firefox",
+	  #         pw_name: "root",
+	  #         readable: true,
+	  #         rgrp: true,
+	  #         roth: true,
+	  #         rusr: true,
+	  #         size: 22,
+	  #         uid: 0,
+	  #         wgrp: true,
+	  #         woth: true,
+	  #         writeable: true,
+	  #         wusr: true,
+	  #         xgrp: true,
+	  #         xoth: true,
+	  #         xusr: true
+	  #     }
+	  # }
 
-    ${0}
+	${0}
 
 snippet command_stat
 abbr command の結果でタスクを変化させる
-    - name: `expand('%:t')` | ${1:#:description}
-      command:
-        ${2:#:command}
-      register: ret
+	- name: `expand('%:t')` | ${1:#:description}
+	  command:
+	    ${2:#:command}
+	  register: ret
 
-    - name: `expand('%:t')` | ${3:#:description}
-      ${4:#:task what you wanto do}
-      when: "{{ ret.stdout_lines | length }} != 0"
-      # ret: {
-      #     changed: true,
-      #     cmd: [
-      #         "pgrep",
-      #         "--exact",
-      #         "firefox"
-      #     ],
-      #     delta: "0:00:00.008690",
-      #     end: "2017-02-20 12:42:11.357574",
-      #     rc: 0,
-      #     start: "2017-02-20 12:42:11.348884",
-      #     stderr: "",
-      #     stdout: "5994",
-      #     stdout_lines: [
-      #         "5994"
-      #     ],
-      #     warnings: []
-      # }
+	- name: `expand('%:t')` | ${3:#:description}
+	  ${4:#:task what you wanto do}
+	  when: "{{ ret.stdout_lines | length }} != 0"
+	  # ret: {
+	  #     changed: true,
+	  #     cmd: [
+	  #         "pgrep",
+	  #         "--exact",
+	  #         "firefox"
+	  #     ],
+	  #     delta: "0:00:00.008690",
+	  #     end: "2017-02-20 12:42:11.357574",
+	  #     rc: 0,
+	  #     start: "2017-02-20 12:42:11.348884",
+	  #     stderr: "",
+	  #     stdout: "5994",
+	  #     stdout_lines: [
+	  #         "5994"
+	  #     ],
+	  #     warnings: []
+	  # }
 
-    ${0}
-
-snippet regex_replace
-abbr jinja2 filter（'...' の場合バックスラッシュは 2 倍必要））
-    regex_replace("${1:#:regex}", "${2:#:replace}")${0}
+	${0}
 
 snippet source_ building
 abbr ソースからインストールするスニペット
-    - name: 依存パッケージをインストール
-      package:
-        name: "{{ item }}"
-        state: present
-      with_items: "{{ prerequisite_packages }}"
+	- name: 依存パッケージをインストール
+	  package:
+	    name: "{{ item }}"
+	    state: present
+	  with_items: "{{ prerequisite_packages }}"
 
-    - name: ソースコードを取得
-      git:
-        repo: "{{ ${1:git_repo_url} }}"
-        dest: "{{ ${2:local_repo_path} }}"
+	- name: ソースコードを取得
+	  git:
+	    repo: "{{ ${1:git_repo_url} }}"
+	    dest: "{{ ${2:local_repo_path} }}"
 
-    - name: コンパイル
-      command:
-        ./configure {{ configure_options | join(" ") }}
-      args:
-        chdir: "{{ $2 }}"
+	- name: コンパイル
+	  command:
+	    ./configure {{ configure_options | join(" ") }}
+	  args:
+	    chdir: "{{ $2 }}"
 
-    - name: ビルド
-      make
-        chdir: "{{ $2 }}"
+	- name: ビルド
+	  make
+	    chdir: "{{ $2 }}"
 
-    - name: インストール
-      make
-        target: install
-        chdir: "{{ $2 }}"
+	- name: インストール
+	  make
+	    target: install
+	    chdir: "{{ $2 }}"
 
-    ${0}
+	${0}
+
+#===============================================================================
+#  Filter
+#===============================================================================
+snippet regex_replace
+abbr 正規表現をシングルクォートでくくる場合バックスラッシュは 2 倍必要 (ansible < 2.0)
+	{{ ${1:var} | regex_replace('${2:#:regex}', '${3:#:replace}') }}${0}
+
+snippet basename
+	{{ ${1:var} | basename() }}${0}

@@ -107,3 +107,8 @@ options head
     \`\`\`${1:#:language}
     ${2:#:code }
     \`\`\`
+
+snippet fig
+abbr hugo fig
+options head
+    {{<figure src="${1:/images/}${0}">}}

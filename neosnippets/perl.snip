@@ -1,8 +1,56 @@
 snippet perl
-	#!/opt/local/bin/perl
-	
+abbr #!/usr/bin/env perl ...
+	#!/usr/bin/env perl
+
+	=pod
+
+	=encoding utf8
+
+	=head1 NAME
+
+	`expand('%:t')`
+
+	=head1 DESCRIPTION
+
+	モジュールの説明。
+
+	=head1 SYNOPSIS
+
+	=over 4
+
+	=item -h, --help
+
+	show help
+
+	=item -m, --mode string
+
+	specify mode
+
+	=back
+
+	=head1 AUTHOR
+
+	Yuta MASANO <masano@sraoss.co.jp>
+
+	=cut
+
+	use autodie;
 	use strict;
+	use utf8;
 	use warnings;
+
+	use Getopt::Long qw{:config posix_default no_ignore_case bundling auto_help};
+	use Pod::Usage qw{pod2usage};
+
+	GetOptions(
+	    \my %opt, qw{
+	    help|h
+	    mode|m=s
+	    }
+    ) or pod2usage(1);
+
+	pod2usage('-verbose' => 2, '-noperldoc' => 1) if $opt{help};
+
 	${1}
 
 snippet sub
