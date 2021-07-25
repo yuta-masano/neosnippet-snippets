@@ -254,7 +254,6 @@ snippet method
 abbr func (method receiver) name( ... ) ... { ... }
     func `g:NeosnippetSnippets_GoMethodReceiver()` ${1:name}(${2:#:params}) ${3:#:return_params} {
         ${0:TARGET}
-        ${4:#:retufn}
     }
 
 snippet func
@@ -263,14 +262,14 @@ abbr func name(x,y int, fn func(Type) Type, ... ) { ... }
         ${0:TARGET}
     }
 
-snippet func_return
+snippet funcReturn
 abbr func name(x,y int, fn func(Type) Type, ... ) return_params { ... }
     func ${1:name}(${2:#:params}) ${3:(Type, error)} {
         ${0:TARGET}
         return
     }
 
-snippet func_anonymous
+snippet funcAnonymous
 abbr execute anonymous function
 options word
     func(${1:#:params}) ${2:#:(Type, Type, ...)} {
@@ -278,14 +277,14 @@ options word
         ${4:#:return}
     }(${3:#:args})
 
-snippet func_cobra
+snippet funcCobra
 abbr cobra command function
     func run${1:}(cmd *cobra.Command, args []string) error {
         ${0}
         return nil
     }
 
-snippet func_handler
+snippet funcHandler
 abbr web のハンドラ関数
     func ${1:name}(w http.ResponseWriter, r *http.Request) {
         ${0:TARGET}
@@ -337,33 +336,42 @@ abbr defer func() { ... }
 #===============================================================================
 #  Testing
 #===============================================================================
-snippet func_test
+snippet funcTest
 abbr test function
     func Test${1:name}(t *testing.T) {
         t.Parallel()
+        ${0}
 
         tests := []struct {
-            in   string
+            name string
+            args args
             want string
         }{
             {
-             in:   "",
-             want: "",
+                name: "",
+                args: args{},
+                want: "",
             },
         }
-        ${0}
-        for i, tt := range tests {
-            got := /* test result */
-            if tt.want != got {
-                t.Fatalf("loop (%d), want = #v but got = %#v"+"\n",
-				i, tt.want, got)
-            }
+
+        for _, tt := range tests {
+            tt := tt
+            t.Run(tt.name, func(t *testing.T) {
+                t.Parallel()
+                if got := /* test processing */; got != tt.want {
+                    t.Errorf("want = %#v but got %#v", tt.want, got)
+                }
+            })
         }
     }
 
+snippet t_errorf
+options word
+    t.Errorf("want = %#v but got %#v", ${1:t.want}, ${2:got})${0}
+
 snippet t_fatalef
 options word
-    t.Fatalf("want = %#v but got = %#v"+"\n", ${2:want}, ${3:got})${0}
+    t.Fatalf("want = %#v but got = %#v"+"\n", ${1:want}, ${2:got})${0}
 
 snippet t_fatale
 options word

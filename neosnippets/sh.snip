@@ -124,6 +124,12 @@ abbr #!/usr/bin/env bash ...
 	SCRIPT_NAME="${0##*/}"
 	SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)"
 
+	# Options:
+	MODE=''
+
+	# Args:
+	ARG1=''
+
 	#===============================================================================
 	#  FUNCTION DEFINITIONS
 	#===============================================================================
@@ -139,9 +145,9 @@ abbr #!/usr/bin/env bash ...
 		  -v, --verbose   print script debug info
 
 		Optoins:
-		  -p, --param     some param description
+		  -m, --mode      mode flag (STRING)
 
-		Flags:
+		Args:
 		  arg1    some arg1 description
 		EOF
 	}
@@ -185,7 +191,7 @@ abbr #!/usr/bin/env bash ...
 	}
 
 	parse_params() {
-		args="$(getopt -o h,v,m: -l help,verbose,mode: -n "$SCRIPT_NAME" -- "$@" || exit 1)"
+		local args="$(getopt -o h,v,m: -l help,verbose,mode: -n "$SCRIPT_NAME" -- "$@" || exit 1)"
 		eval set -- "$args"
 		while true; do
 			case "\$1" in
@@ -218,8 +224,8 @@ abbr #!/usr/bin/env bash ...
 	#===============================================================================
 	#  MAIN SCRIPT
 	#===============================================================================
-	parse_params "$@"
 	setup_colors
+	parse_params "$@"
 
 snippet shebang_well_behaved
 abbr #!/usr/bin/env bash ...
@@ -403,25 +409,25 @@ abbr デバッグプリント
 	${0}
 
 snippet readline_file
-abbr  ファイルを一行ずつ読んで処理をする
+abbr ファイルを一行ずつ読んで処理をする
 	while read -r ${1:line}; do
 		${0}
 	done < ${2:#:filepath}
 
 snippet readline_herestring
-abbr  ヒアストリング結果を一行ずつ読んで処理をする (only bash)
+abbr ヒアストリング結果を一行ずつ読んで処理をする (only bash)
 	while read ${1:line}; do
 		${0}
 	done <<< "${2:#:variable}"
 
 snippet readline_comand_result
-abbr  プロセス置換でコマンド実行結果を一行ずつ読んで処理をする (only bash)
+abbr プロセス置換でコマンド実行結果を一行ずつ読んで処理をする (only bash)
 	while read ${1:line}; do
 		${0}
 	done < <(${2:#:command})
 
 snippet readline_comand_result2
-abbr  パイプ経由でコマンド実行結果を一行ずつ読んで処理をする
+abbr パイプ経由でコマンド実行結果を一行ずつ読んで処理をする
 	foo=''
 	ls | while read line; do
 		foo="$line"
@@ -1034,116 +1040,166 @@ options word
 #===============================================================================
 #  Parameter Substitution
 #===============================================================================
-# 大文字小文字変換は後ろに pattern を追加できるらしいが？
-snippet v_${_^^}
-abbr all lower to upper
+snippet v_${var:-word}
+abbr 未定義、空文字ならデフォルト値を使う（代入ではない）
 options word
-	${${0:var}^^}
-
-snippet v_${_,,}
-abbr all upper to lower
-options word
-	${${0:var},,}
-
-snippet v_${_^}
-abbr first lower to upper
-options word
-	${${0:var}^}
-
-snippet v_${_,}
-abbr first upper to lower
-options word
-	${${0:var},}
-
-snippet v_${_:-_}
-abbr 未定義、NULL ならデフォルト値を使う（代入ではない）
-options word
-	${${1:var}:-${0:default}}
+	${${1:var}:-${0:word}}
 	# 以下で \$1 が未定義なら空文字を代入ができる。
-	# 空文字の場合はダブルクォートでくくる場合がある点に注意。
+	# \$1 が空文字の場合はダブルクォートでくくる場合がある点に注意。
 	# VAR="\${1:-}"
 
-snippet v_${_:=_}
-abbr 未定義、NULL ならデフォルト値を代入
+snippet v_${var:=word}
+abbr 未定義、空文字ならデフォルト値を代入
 options word
-	${${1:var}:=${0:default}}
+	${${1:var}:=${0:word}}
 
-snippet v_${_:?_}
-abbr 未定義、NULL ならメッセージを表示してエラー終了
+snippet v_${var-word}
+abbr 未定義ならデフォルト値を使う（代入ではない）
 options word
-	${${0:var}:?value is not set}
+	${${1:var}-${0:word}}
 
-snippet v_${!_}
-abbr name='bob' -> val='name' -> ${!val} => bob
+snippet v_${var=word}
+abbr 未定義ならデフォルト値を代入
 options word
-	${!${0:var}}
+	${${1:var}=${0:word}}
 
-snippet v_${!_*}
-abbr マッチする変数名をスペース区切りで列挙
+snippet v_${var:?word}
+abbr 未定義、空文字ならメッセージを表示してエラー終了
 options word
-	${!${0:var}*}
+	${${1:var}:?\\$$1 is null or not set}${0}
 
-snippet v_${#_}
-abbr 変数の length（というか byte 数）
+snippet v_${var+word}
+abbr 定義済みならデフォルト値を使う
 options word
-	${#${0:var}}
+	${${1:var}+${0:word}}
+	# $1 に引数を割り当てて、引数が渡ってきた時にのみ、何らかの加工をさせたい場合に使う？
+	# SUFFIX="$1"
+	# echo 'text' > output${SUFFIX:+"_${SUFFIX}"}.txt # 引数がなければ output.txt だし、引数 (prod) があれば output_prod.txt にできる。
 
-snippet v_${_//_/_}
-abbr パターンにマッチしたものを全て置換
+snippet v_${var:+word}
+abbr 定義済みならデフォルト値を代入（いつ使うんだ？）
 options word
-	${${1:var}//${2:pattern}/${3:replace}}
+	${${1:var}:+${0:word}}
 
-#---  TODO: 2016-11-11  --------------------------------------------------------
-
-snippet v_${_/#_/_}
-abbr pattern substitution begin
+snippet v_${var:offset}
+abbr offset + 1 文字目以降を参照
 options word
-	${${n:var}/#<+pattern+>/<+string+>}
+	${${1:var}:${2:offset}}${0}
 
-snippet v_${_/_/_}
-abbr パターンにマッチした最初のものを置換
+snippet v_${var:offset:length}
+abbr offset + 1 文字目から length 文字を参照
 options word
-	${${n:var}/<+pattern+>/<+string+>}
+	${${1:var}:${2:offset}:${3:length}}${0} # length を負数にすると offset + 1 文字以降を取り出して、 offset + length 文字を参照する
 
-snippet v_${_/%_/_}
-abbr pattern substitution end
+snippet v_${!prefix*}
+abbr prefix で始まる変数名一覧（変数名がまとめてダブルクォート処理される）
 options word
-	${${n:var}/%<+pattern+>/<+string+>}
+	${!${1:prefix}*}${0}
 
-snippet v_${_##_}
-abbr remove all matching prefix pattern
+snippet v_${!prefix@}
+abbr prefix で始まる変数名一覧（変数名ごとにダブルクォート処理される）
 options word
-	${${n:var}##<+word+>}
+	${!${1:prefix}@}${0}
 
-snippet v_${_%%_}
-abbr remove all matching suffix pattern
+snippet v_${!var[*]}
+abbr 連想配列 var のキー名一覧（キー名がまとめてダブルクォート処理される）
 options word
-	${${n:var}%%<+word+>}
+	${!${1:var}[*]}${0}
 
-snippet v_${_#_}
-abbr remove matching prefix pattern
+snippet v_${!var[@]}
+abbr 連想配列 var のキー名一覧（キー名ごとにダブルクォート処理される）
 options word
-	${${n:var}#<+word+>}
+	${!${1:var}[@]}${0}
 
-snippet v_${_%_}
-abbr remove matching suffix pattern
+snippet v_${var[*]}
+abbr 連想配列 var の値一覧（値がまとめてダブルクォート処理される）
 options word
-	${${n:var}%<+word+>}
+	${${1:var}[*]}${0}
 
-snippet v_${_}
-abbr substitution
+snippet v_${var[@]}
+abbr 連想配列 var の値一覧（値ごとにダブルクォート処理される）
 options word
-	${<SPLIT>${n:var}}
+	${${1:var}[@]}${0}
 
-snippet v_${_:_:_}
-abbr 文字列の切り出し
+snippet v_${#var[*]}
+abbr 配列、連想配列の要素数（[@] と変わらない）
 options word
-	${${1:var}:${2:offset}${3:#::length}}
+	${#${1:var}[*]}${0}
 
-snippet v_${_:+_}
-abbr use alternate value
+snippet v_${#var[@]}
+abbr 配列、連想配列の要素数
 options word
-	${${n:var}:+<+word+>}
+	${#${1:var}[@]}${0}
+
+snippet v_${var#word}
+abbr 前方一致最短除去（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}#${2:word}}${0}
+
+snippet v_${var##word}
+abbr 前方一致最長除去（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}##${2:word}}${0}
+
+snippet v_${var%word}
+abbr 後方一致最短除去（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}%${2:word}}${0}
+
+snippet v_${var%%word}
+abbr 後方一致最長除去（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}%%${2:word}}${0}
+
+snippet v_${var/pattern/string}
+abbr 文字列置換（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}/${2:pattern}/${3:string}}${0}
+
+snippet v_${var//pattern/string}
+abbr グローバルな文字列置換（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}//${2:pattern}/${3:string}}${0}
+
+snippet v_${var/#pattern/string}
+abbr 前方一致文字列置換（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}/#${2:pattern}/${3:string}}${0}
+
+snippet v_${var/%pattern/string}
+abbr 後方一致文字列置換（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}/%${2:pattern}/${3:string}}${0}
+
+snippet v_${var^pattern}
+abbr pattern に合致する先頭一文字を大文字化（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}^${2:#pattern}}${0}
+
+snippet v_${var^^pattern}
+abbr pattern に合致する文字を全部大文字化（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}^^${2:#pattern}}${0}
+
+snippet v_${var,pattern}
+abbr pattern に合致する先頭一文字を小文字化（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var},${2:#pattern}}${0}
+
+snippet v_${var,,pattern}
+abbr pattern に合致する文字を全部小文字化（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var},,${2:#pattern}}${0}
+
+snippet v_${var~pattern}
+abbr pattern に合致する先頭一文字を大文字小文字反転（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}~${2:#pattern}}${0}
+
+snippet v_${var,,pattern}
+abbr pattern に合致する文字を全部大文字小文字反転（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}~~${2:#pattern}}${0}
 
 #===============================================================================
 #  Declaration
