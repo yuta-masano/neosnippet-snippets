@@ -4,7 +4,7 @@
 " #=========...
 function! g:NeosnippetSnippets_CommentLine() abort
     let maxColumn = 80
-    let commentStr = split(&commentstring, '%s')[0]
+    let commentStr = strpart(&commentstring, 0, 1)
 
     let i = 0
     let line = ''
@@ -24,7 +24,7 @@ endfunction
 " #---  title  ---...
 function! g:NeosnippetSnippets_SubCommentLine() abort
     let maxColumn = 80
-    let commentStr = split(&commentstring, '%s')[0]
+    let commentStr = strpart(&commentstring, 0, 1)
 
     let ret = input('title > ')
     let head = commentStr . '---' . '  ' . ret . '  '

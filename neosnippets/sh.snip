@@ -53,7 +53,7 @@ abbr #!/bin/bash ...
 
 	# tempfile
 	: ${TMPDIR=/tmp}
-	TEMP_FILE_SUFFIX="${SCRIPT_NAME//.sh/}"
+	TEMP_FILE_SUFFIX="${SCRIPT_NAME%.sh}"
 	# tempfile="\$(mktemp -p "$TMPDIR" --suffix="$TEMP_FILE_SUFFIX")"
 
 	#===============================================================================
@@ -68,9 +68,9 @@ abbr #!/bin/bash ...
 	#===============================================================================
 	#---  FUNCTION  ----------------------------------------------------------------
 	#          NAME: print_usage_exit
-	#   DESCRIPTION: Print part of header in this file into stderror, and exit 1.
+	#   DESCRIPTION: Print part of header in this file into stderror, and exit.
 	#    PARAMETERS: ---
-	#       RETURNS: 1
+	#       RETURNS: 0
 	#-------------------------------------------------------------------------------
 	print_usage_exit() {
 		{
@@ -79,7 +79,7 @@ abbr #!/bin/bash ...
 				| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //'
 			printf '\n'
 		} >&2
-		exit 1
+		exit 0
 	}    # ----------  end of print_usage_exit  ----------
 
 	#===============================================================================
@@ -124,11 +124,11 @@ abbr #!/usr/bin/env bash ...
 	SCRIPT_NAME="${0##*/}"
 	SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)"
 
-	# Options:
-	MODE=''
-
-	# Args:
+	# Args
 	ARG1=''
+
+	# Options
+	MODE=''
 
 	#===============================================================================
 	#  FUNCTION DEFINITIONS
@@ -140,33 +140,35 @@ abbr #!/usr/bin/env bash ...
 		Usage:
 		  $SCRIPT_NAME [-h] [-v] -m param_value arg1
 
+		Arguments:
+		  arg1    some arg1 description
+
 		Flags:
-		  -h, --help      print this help and exit
-		  -v, --verbose   print script debug info
+		  -h, --help       print this help and exit
+		  -v, --verbose    print script debug info
 
 		Optoins:
-		  -m, --mode      mode flag (STRING)
-
-		Args:
-		  arg1    some arg1 description
+		  -m, --mode       mode flag (STRING)
 		EOF
 	}
 
 	#---  trap  --------------------------------------------------------------------
 
 	cleanup() {
-		echo "Trapped signal: \$1"
+		local sig="\$1"
+
+		trap - HUP INT QUIT PIPE TERM ERR EXIT
 		# script cleanup here
+		echo "Trapped signal: \$1"
 	}
 
 	trap_sig() {
 		for sig ; do
-			trap "cleanup $sig" "$sig"
+			trap 'cleanup $sig' "$sig"
 		done
 	}
 
-	# trap_sig HUP INT QUIT PIPE TERM ERR EXIT
-	trap_sig HUP INT QUIT PIPE TERM ERR
+	trap_sig HUP INT QUIT PIPE TERM ERR EXIT
 
 	#---  end of trap  -------------------------------------------------------------
 
@@ -191,12 +193,14 @@ abbr #!/usr/bin/env bash ...
 	}
 
 	parse_params() {
-		local args="$(getopt -o h,v,m: -l help,verbose,mode: -n "$SCRIPT_NAME" -- "$@" || exit 1)"
+		local args
+
+		args="$(getopt -o h,v,m: -l help,verbose,mode: -n "$SCRIPT_NAME" -- "$@" || exit 1)"
 		eval set -- "$args"
 		while true; do
 			case "\$1" in
 				-h | --help)
-					usage && die ''
+					usage && exit
 					;;
 				-v | --verbose)
 					set -o xtrace -o verbose
@@ -267,7 +271,7 @@ abbr #!/usr/bin/env bash ...
 
 	# tempfile
 	: ${TMPDIR=/tmp}
-	TEMP_FILE_SUFFIX="${SCRIPT_NAME//.sh/}"
+	TEMP_FILE_SUFFIX="${SCRIPT_NAME%.sh}"
 	# tempfile="\$(mktemp -p "$TMPDIR" --suffix="$TEMP_FILE_SUFFIX")"
 
 	#===============================================================================
@@ -301,9 +305,9 @@ abbr #!/usr/bin/env bash ...
 	#===============================================================================
 	#---  FUNCTION  ----------------------------------------------------------------
 	#          NAME: print_usage_exit
-	#   DESCRIPTION: Print part of header in this file into stderror, and exit 1.
+	#   DESCRIPTION: Print part of header in this file into stderror, and exit.
 	#    PARAMETERS: ---
-	#       RETURNS: 1
+	#       RETURNS: 0
 	#-------------------------------------------------------------------------------
 	print_usage_exit() {
 		{
@@ -312,7 +316,7 @@ abbr #!/usr/bin/env bash ...
 				| sed -e '/^#$\|^# *AUTHOR/d' -e 's/^# //'
 			printf '\n'
 		} >&2
-		exit 1
+		exit
 	}    # ----------  end of print_usage_exit  ----------
 
 	#===============================================================================
@@ -348,13 +352,19 @@ abbr #!/usr/bin/env bash ...
 
 snippet ifok
 abbr 直前のコマンドが成功することを期待
-	if [ $? -eq 0 ]; then
+	if ${1:#:my_command}; then
 		${0}
 	fi
 
 snippet iferr
 abbr 直前のコマンドが失敗することを期待
-	if [ $? -ne 0 ]; then
+	if ! ${1:#:my_command}; then
+		${0}
+	fi
+
+snippet ifpipe
+abbr パイプを受け取ることを期待
+	if [ -p /dev/stdin  ]; then
 		${0}
 	fi
 
@@ -1181,6 +1191,11 @@ abbr pattern に合致する文字を全部大文字化（${var[@|*]... で配�
 options word
 	${${1:var}^^${2:#pattern}}${0}
 
+snippet v_${var^^}
+abbr 文字を全部大文字化（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}^^}${0}
+
 snippet v_${var,pattern}
 abbr pattern に合致する先頭一文字を小文字化（${var[@|*]... で配列か連想配列の値にも効く）
 options word
@@ -1191,15 +1206,26 @@ abbr pattern に合致する文字を全部小文字化（${var[@|*]... で配�
 options word
 	${${1:var},,${2:#pattern}}${0}
 
+snippet v_${var,,}
+abbr 文字を全部小文字化（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var},,}${0}
+
+
 snippet v_${var~pattern}
 abbr pattern に合致する先頭一文字を大文字小文字反転（${var[@|*]... で配列か連想配列の値にも効く）
 options word
 	${${1:var}~${2:#pattern}}${0}
 
-snippet v_${var,,pattern}
+snippet v_${var~~pattern}
 abbr pattern に合致する文字を全部大文字小文字反転（${var[@|*]... で配列か連想配列の値にも効く）
 options word
 	${${1:var}~~${2:#pattern}}${0}
+
+snippet v_${var~~}
+abbr 文字を全部大文字小文字反転（${var[@|*]... で配列か連想配列の値にも効く）
+options word
+	${${1:var}~~}${0}
 
 #===============================================================================
 #  Declaration
@@ -1324,10 +1350,13 @@ snippet until
 
 
 snippet heredoc
-alias h <<
 	<<- ${1:EOF}
 		${0:#:TARGET}
 	$1
+
+snippet herestring
+abbr echo "$VAR" | COMMAND の代わり
+	${1:#:COMMAND} <<< "${2:#:\$VAR}"
 
 snippet env
 	#!/usr/bin/env ${1}

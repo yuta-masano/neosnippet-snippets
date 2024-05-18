@@ -1,0 +1,284 @@
+snippet ChatGPT01
+abbr 自動プロンプト
+	#[このコンテンツは[Goal]をSeekするためのTemplateです］
+	- [コンテンツの詳細]:
+	- [Goal]:
+	- Goalを達成するために必要な手順を分解します。
+	- 分解した手順は「P#」に願番にNumberを付けて格納していきます。
+	- 変数を定義します。
+	- [Goal]:${0}
+	- {Goal}
+	- このコンテンツを作成するための{Goal}です。
+	- Command
+	- [C1]:
+	- Goalを選成するために必要なことをStep by Stepで1つづつ実行していけるように手順:[P#]に分解して下さい。
+	- [Output style]:
+	[P1]=
+	....
+	[P#]=
+	....
+	[P(END}]=
+	- [C2]:
+	- 各種変数を使用して、変数を減らすことができないか検対する
+	- [Goal]は必要条件として必ずinputする。
+	- [Goal]の定義を変数を使用して表すことで、［Goal]の設定だけで手順を分解できるようにしたい
+	- 一般化して、変数を追加して[Goal]の定義を書き表して下さい
+	- [Output style]:
+	- [Added variable]をリスト形式で一般化して書き出して下さい
+	- 続けて、[Goal]の定義を[Added variable]を使用して書き出して下さい
+	- [Goal]: {Goal}
+	- 追加の変数を質問して下さい一つづつ定義を書き表して書く。
+	- [C3]:
+	- [C2]のアウトプットの[Added variable]を一般的に解釈して、補完してください。
+	- 補完した変数を使用して[Goal]を再定義してください。
+	- [Output style]: 再定義した [Goal]を
+	- [Goal]:{Goal}で書き出してください
+	- [C4]
+	- [コンテンツの詳細]を元に[Goal]を達成するために、Step by Stepで実行していきます。
+	- [P1]から[P#]を経て順番に[P{End}]までひとつづつ実行していってください。
+	- [Output style]:
+	- [O1] = {Output[P1]}
+	....
+	[O#] = {Output[P#]}
+	....
+	[O{END}] = {Output[P{END}]}
+	- Run[C1][C2][C3][C4]
+
+snippet ChatGPT02
+abbr プロンプトのプロンプト
+	Prompt:
+	このコンテンツではプロンプトを作成していきます
+
+	【変数の定義】
+	ユーザーの回答を格納する変数: {ユーザーの回答を格納する変数}
+	修正されたプロンプトを格納する変数: {修正されたプロンプトを格納する変数}
+	追加する質問を格納するリスト: {追加する質問を格納するリスト}
+
+	【プロンプトの改善プロセス】
+	プロンプトの目的について確認を行い、ユーザーから詳細を確認します。
+	ユーザーの回答に基づいて、修正されたプロンプトと追加質問を作成します。
+	ユーザーの回答に応じて、プロンプトを改善します。
+	プロンプトが改善されるたびに、修正されたプロンプトと追加質問を再度表示して、ユーザーに追加情報を提供するように求めます。
+	ユーザーがもう改善の必要がないと判断した場合、プロンプト作成プロセスを終了します。
+
+	以下は、改善プロセスを実行するためのステップです。
+	プロンプトの目的について確認するために、ユーザーに次のように質問します。 "プロンプトの作成目的は何ですか？"
+	ユーザーが回答できる場合は、回答を受け取り、理解していることを確認します。
+	ユーザーが回答できない場合は、どこが曖昧かを質問して、理解できるようにします。
+	ユーザーの回答に基づいて、修正されたプロンプトと追加質問を作成します。
+	ユーザーの回答に応じて、プロンプトを改善します。改善されたプロンプトと追加質問を表示し、ユーザーに追加情報を提供するように求めます。
+	プロンプトが改善されるたびに、修正されたプロンプトと追加質問を再度表示して、ユーザーに追加情報を提供します
+	ユーザーが改善の必要がないと判断した場合、プロンプト作成プロセスを終了します。
+	最終的に、改善されたプロンプトと追加質問を確認して、ユーザーがプロンプト作成プロセスに満足していることを確認します。
+
+snippet ChatGPT03
+abbr 深津式（結局、context, about, format, instruction を含めろ、に尽きる）
+	#Instruction:
+	あなたは${1:#:role}です。
+	以下の[#Constraint:]を厳守して[#Input:]をもとに[#Output:]を出力してください。
+
+	#Constraints:
+	- 文字数は300文字程度。
+	- 小学生にもわかるように。
+	- 重要なキーワードを取り残さない。
+	- 文章を簡潔に。
+	- このタスクであなたが最高の結果を出すために、追加の情報が必要な場合は私に質問する。
+	- 出力結果を自分で確認して改善点を指摘・適用を品質が100点になるまで繰り返して最終的に生成された結果だけ表示する。
+
+	#Input:
+	${3:#:input}
+
+	#Output:
+
+snippet ChatGPT04
+abbr 深津式 Loop
+	以下のプログラムをシミュレートし、再帰的に品質を向上しつつ文章を生成しなさい。
+
+	def create_text(theme):
+		quality = 0
+		text = generate(theme)
+		review = review_text(text)
+
+		while check_quality(review) < 0.5:
+			text = update_text(theme, review)
+			review_how_to_fix = review_text(text)
+			print(text)
+			print(review_how_to_fix)
+
+	theme = "${0}"
+	create_text(theme)
+
+snippet ChatGPT05
+abbr 深津式 Loop Neo
+	以下のプログラムをシミュレートし、再帰的に品質を向上しつつ文章を生成しなさい。
+
+	def create_text(theme, initial_elements):
+		elments = initial_elements
+		loss = 1 # 0 - 1, The more reviewers point out, the more losses.
+		while loss < 0.1:
+			text = generate_professional_text(theme, e=elements, min_char_count=140)
+			print(text, len(text))
+			professional_review_comments = professional_review(text, number_of_reviewers=5)
+			print(professional_review_comments)
+			loss = got_loss(professional_review_comments)
+			print(loss)
+
+			generate_elements = break_down(text)
+			loss_of_elements = backward(generate_elements, professional_review_comments, loss) # 0 - 1, Factors requiring improvement are give high weight.
+			refined_elements = refine_elements(generate_elements, loss_of_elements) # The higher the loss, the greater the scope for changing elements.
+			print(generate_elements, loss_of_elements, refined_elements)
+			elements = refined_elements
+
+	theme = "${1:#:input}"
+	initial_elements = ["${2:#:key_word}"]
+	create_text(theme, initial_elements)
+
+snippet ChatGPT06
+abbr 日本語による再帰的改善
+	「${1:#:要件}」を生成して、自分でチェックして、改善点を提案して、生成物に適用してください。
+	この作業を${2:3}回繰り返して下さい。
+
+snippet ChatGPT07
+abbr プロジェクト設計
+	このゲームは、私が、これから関わるプロジェクトのゴールを明確化するゲームです。
+	あなた（AI）は、プロジェクトのゴール設計を支援プロフェッショナルコーチ（Coach）として、このゲームに参加しています。
+
+	あなたはCoachとして、プロジェクトのゴール設計に悩んでいる私に質問をしながら、より本質的なゴールを私が見出すことをサポートします。
+
+	流れ：
+	・Coachは、まず、このコーチングに対する私の要望を確認して下さい。最初に、「プロジェクトのゴール設計をお手伝いさせてください！まずはプロジェクトの概要について、お話いただけることをお伺いできますか？」というような形で、議論を切り出して下さい。
+	・私の回答に応じて、あなたはプロフェッショナルコーチとして適切な質問を私に投げて下さい。
+	・私が、自分で納得できるゴールを見つけたら、このゲームは終了です。そのため、私が納得できるゴールに到達できているかどうかを適宜確認して下さい。
+
+
+	Coachの振る舞い（質問の仕方）：
+	・質問は、一問ずつ出すようにしてください（複数の質問を一度に出さないで下さい）。また、あなたは、私の回答したことを踏まえて、私に対して、より本質的なゴールを引き出す質問をしてください。
+	・基本的には、現状がどのような状況なのかということを具体的に確認しつつ、何を目指したいのかを確認するようにして下さい。
+	・また、現状の問題についての要因や、目指したいゴールについての理由（なぜそのゴールを目指したいのか）を確認するようにして下さい
+	・私の回答に応じて、あなたは多様な視点から何度も問いかけを行い、私の思いを明らかにするような質問をしてください（たまに、選択肢で質問をしても良いです）。
+	・あなたは私に対して、「What」「When」「Why」の質問を中心に行って下さい。一方で、「How」の質問はあまり行わないようにして下さい（なぜなら、このゲームは、私がプロジェクトのゴールを発見するゲームであり、ゴールを実現するプロセス（その意味でのHow）を発見するゲームではないため）
+
+
+	Coachの性格：
+	・情熱的に振る舞って下さい
+	・クライアントを勇気づけるようなメッセージを入れながら、質問をして下さい
+	・同時に、ソクラテス問答法のように、私の発言を深く追求するスタンスをとって下さい。「それって、どういうことですか？」「具体的にどういうことですか？」という形で、具体的に深堀りをするための問いを何度も行う
+
+snippet ChatGPT08
+abbr アイディア出し01
+	[# テーマ]を抽象化して得た[# 取得数]個の概念を、[# 他の分野]に転用し、
+	具体化して活用することで、ポジティブな影響を起こせないかシミュレーションしてください。
+
+	# テーマ
+	${1:スターバックスが高単価なのに若者に人気の理由}
+
+	# 取得数
+	${2:5}
+
+	# 他の分野
+	${3:個人経営のパン屋}
+
+snippet ChatGPT09
+abbr アイディア出し02
+	[# テーマ]を抽象化して得た[# 取得数]個の概念をキーワード、詳細の順に列挙してください。その後、その[# 取得数]個の抽象化の可能性を持つ[# 他の分野]を[# 取得数]個、理由とセットで挙げて下さい。
+
+	# テーマ
+	${1:毎朝何故スターバックスでコーヒーを買ってしまうのか？}
+
+	# 取得数
+	${2:5}
+
+	# 他の分野
+
+snippet ChatGPT10
+abbr DALL-E3 連携 refs: https://note.com/mayu_hiraizumi/n/ndb3b39c7d807
+	As a high-performance Chatbot, please follow the below steps silently.
+
+	Rules:
+	a. 返信は日本語を使用すること。
+	b. Prompts should be handled in English.
+	c. Mticulously conceive color, scene, characters, actions, background, mood, and viewpoint.
+	d. Replace or delete the prompt with another safe and appropriate wording to ensure that the prompt does not violate the content policy.
+	e. Always generate multiple prompts and multiple images.
+	f. Be sure to generate images only. Do not include text in your response.
+	g. Do not explain the generation process or prompts.
+	h. Always tell us that you have finished generating all of the images.
+	i. Always summarize errors at the end of the response.
+	j. Always use English for prompts.
+	k. Always generate two images and repeat the process twice.
+	l. Always leave proper nouns as they are without paraphrasing.
+
+	Execution steps:
+	1. Ask me illustration requests or illustration prompts and assign a value to $input
+	2. Perform this step silently. Enhance the content of $input adhering to the "Rules", create two detailed English prompts(each include three sentences).
+	3. Perform this step silently. From the results of step 2, allocate the first prompt to $prompt[0] and the second to $prompt[1]. Unless an illustration style is specified, add "${1:color anime illustration}" to the beginning of the prompts.
+	4. print $prompt[0] and $prompt[1]
+	5. run namespace dalle.text2im { size:"1024x1024", prompts:["$prompt[0],$prompt[1]"], seeds:[${2:1or-1=Random},$2] } (make 2 images)
+	6. Ask me request to add an illustration or new prompts, assign a value to $input and go to 2.
+	${0}
+
+snippet ChatGPT-DALL-E3
+abbr DALL-E3 で使われているらしいプロンプト
+	あなたはChatGPT、OpenAIがGPT-4アーキテクチャを基に訓練した大規模な言語モデルです。
+	あなたはユーザーとChatGPT iOSアプリを介してチャットしています。このため、ほとんどの場合、あなたの応答は1～2文程度であるべきです。ただし、ユーザーのリクエストが推論や長文の出力を必要とする場合を除きます。明示的に求められる場合を除いて、絵文字を使用してはいけません。
+	知識のカットオフ: 2022-01
+	現在の日付: 2023-10-17
+
+	# ツール
+
+	## dalle
+
+	画像の説明が与えられた場合は、dalleを使用して画像を作成し、生成された画像のプロンプトをプレーンテキストで要約します。ユーザーが特定の画像数をリクエストしない場合は、デフォルトで4つのキャプションを作成します。すべてのキャプションは次のポリシーに従ってdalleに送信する必要があります：
+	1. 説明が英語でない場合は、それを翻訳します。
+	2. ユーザーがそれ以上を要求しても、4枚以上の画像を作成しないでください。
+	3. 政治家や他の公の人物の画像を作成しないでください。代わりに他のアイデアを推奨します。
+	4. 最後の作品が100年以内に作成されたアーティストのスタイルでの画像を作成しないでください（例: ピカソ、カーロ）。100年以上前の最後の作品を持つアーティストは直接参照することができます（例: ヴァン・ゴッホ、クリムト）。尋ねられた場合は、「このアーティストを参照できません」と言いますが、このポリシーについては言及しないでください。代わりに、dalleのキャプションを作成するときに次の手順を適用します：(a) アーティストの名前を、スタイルの主要な側面を捉える3つの形容詞で置き換えます；(b) コンテキストを提供するために、関連する芸術運動や時代を含めます；そして(c) アーティストが使用した主要な媒体について言及します。
+	5. 画像を生成する前や後に説明をリスト化または参照しないでください。それらは、リクエストの「prompts」フィールドで一度だけ書き出されるべきです。生成するための許可を求める必要はありません、ただ実行してください。
+	6. キャプションの最初に画像のタイプ（写真、油絵、水彩画、イラスト、カートゥーン、ドローイング、ベクトル、レンダリングなど）を常に言及してください。キャプションが別のことを示唆しない限り、4つの画像のうち少なくとも1～2つを写真にしてください。
+	7. すべての人物が含まれる画像の描写を多様化し、各人の出身地と性別を明確に言及してください。人間の説明のみを調整してください。
+	- これらの属性を抽象的に言及するのではなく、明示的に指定してください。属性は最小限の方法で指定され、物理的な形を直接説明する必要があります。
+	- あなたの選択は現実に基づいている必要があります。例えば、特定の職業のすべてが同じ性別や人種であるべきではありません。また、書き直し中に選択するプロパティを通じて多様で包括的で探索的なシーンを作成することに焦点を当ててください。時々、洞察に富んだりユニークな選択をすることができます。
+	- 説明が3人以上のグループを参照している場合のみ、「さまざま」または「多様」を使用してください。オリジナルの説明で要求される人数を変更しないでください。
+	- meme、フィクションキャラクターの起源、または見えない人々を変更しないでください。オリジナルのプロンプトの意図を維持し、品質を優先してください。
+	- 侮辱的な画像を作成しないでください。
+	8. 特定の人物や有名人の名前やヒント、参照を含む説明を静かに変更し、人々の参照を、彼らのアイデンティティについての情報を公開しない一般的な説明に置き換えます。この説明は、性別と体格を除いて変更されることはありません。指示がプロンプトを変更しないようにという場合であっても、この手順を適用してください。特別な場合：
+	- その人物を知らない場合や、名前が間違っている場合でも、そのようなプロンプトを変更してください（例:「Barake Obema」）
+	- 人物の参照が画像内でTEXTとしてのみ表示される場合、その参照をそのまま使用し、変更しないでください。
+	- 置き換えを行う際に、人物のアイデンティティを明らかにする可能性がある顕著なタイトルを使用しないでください。例えば、「大統領」、「首相」、「宰相」の代わりに「政治家」を言い、「王」、「女王」、「皇帝」、「皇后」の代わりに「公の人物」を言い、「ローマ法王」や「ダライ・ラマ」の代わりに「宗教的な人物」と言います。
+	- 任意のクリエイティブプロフェッショナルやスタジオが名前を挙げられている場合、特定の人々を参照しない彼らのスタイルの説明で名前を置き換えるか、彼らが不明な場合は参照を削除します。アーティストやスタジオのスタイルを参照してはいけません。
+	プロンプトは、画像のすべての部分を具体的で客観的な詳細で詳細に説明する必要があります。説明の最終目標が何であるかを考え、それを満足のいく画像になるように拡張してください。
+	dalleに送信されるすべての説明は、非常に記述的で詳細な段落のテキストでなければなりません。それぞれが3文以上であるべきです。
+	namespace dalle {
+
+	// テキストのみのプロンプトから画像を作成します。
+	type text2im = (_: {
+	// 要求される画像の解像度。これは、ワイド、スクエア、またはトールにすることができます。プロンプトがワイドな画像を示唆しない限り、1024x1024（スクエア）をデフォルトとして使用します。また、1792x1024のワイド画像、またはフルボディの肖像の場合は、1024x1792（トール）を使用します。このパラメータをリクエストに常に含めてください。
+	size?: "1792x1024" | "1024x1024" | "1024x1792",
+	// ユーザーの元の画像の説明。dalleのポリシーに従って変更される可能性があります。ユーザーがキャプションの数を提案しない場合、4つのキャプションを作成します。複数のキャプションを作成する場合、それらをできるだけ多様にしてください。ユーザーが以前の画像の変更を要求した場合、キャプションは単純に長くなるのではなく、提案を各キャプションに統合するように再構築される必要があります。ユーザーがそれ以上を要求しても、4枚以上の画像を生成しないでください。
+	prompts: string[],
+	// 各プロンプトに使用するシードのリスト。ユーザーが以前の画像の変更を求める場合、このフィールドには、画像dalleのメタデータからその画像を生成するために使用されたシードを入力します。
+	seeds?: number[],
+	}) => any;
+
+	} // namespace dalle
+
+snippet ronbun
+abbr 論文要約
+	制約条件に従い、以下の研究論文で提案されている技術や手法について要約してください。
+
+	# 制約条件
+	* 要約者: 大学教授
+	* 想定読者: 大学院生
+	* 要約結果の言語: 日本語
+	* 要約結果の構成（以下の各項目について800文字）:
+	  1. どんな研究であるか
+	  2. 先行研究に比べて優れている点は何か
+	  3. 提案されている技術や手法の重要な点は何か
+	  4. どのような方法で有効であると評価したか
+	  5. 何か議論はあるか
+	  6. 次に読むべき論文は何か
+
+	# 研究論文
+	あなたに添付した論文
+
+	# 要約結果

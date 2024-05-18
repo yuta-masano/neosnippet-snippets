@@ -104,7 +104,7 @@ abbr src に環境変数が使えないので {{ lookup("env", "HOME") }} する
 	  owner: ${3:#:owner}
 	  group: ${4:#:group}
 	  mode: "${5:0600}"
-	  remote_sorc: ${3:#:no(*) | yes } # yes: ターゲットマシンのファイルを src にする
+	  remote_src: ${3:#:no(*) | yes } # yes: ターゲットマシンのファイルを src にする
 	${0}
 
 snippet get_url
@@ -153,12 +153,21 @@ options word
 	${0}
 
 snippet blockinfile
+abbr 複数行のテキスト追加
 	blockinfile:
 	path: ${1:#:path to the target}
+	mark: ${2:"# {mark} ANSIBLE MANAGED BLOCK"}
 	block: |
-	  ${2:#:block contents}
+	  ${3:#:block contents}
 	create: yes # ファイルが存在していなかったら作成する
 	${0}
+
+snippet lineinfile
+abbr 一行単位のテキスト追加
+	lineinfile:
+	path: ${1:#:path to the target}
+	line: ${0}
+	create: yes # ファイルが存在していなかったら作成する
 
 snippet systemd
 	systemd:

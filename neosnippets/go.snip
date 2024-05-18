@@ -310,13 +310,15 @@ abbr map の slice は明示的に初期化する必要がある
 #===============================================================================
 #  Function
 #===============================================================================
-snippet printf
-alias ff
+snippet fprintf
   fmt.Printf("${1}\n"${2:})
 
-snippet println
-alias fl
+snippet fprintln
   fmt.Println(${0:TARGET})
+
+snippet ferrorf
+alias fe
+  fmt.Errorf("failed to ${1:...}: %w", ${2:err})${0}
 
 snippet ddump
 abbr dd
@@ -365,15 +367,15 @@ abbr test function
         }
     }
 
-snippet t_errorf
+snippet terrorf
 options word
     t.Errorf("want = %#v but got %#v", ${1:t.want}, ${2:got})${0}
 
-snippet t_fatalef
+snippet tfatalef
 options word
     t.Fatalf("want = %#v but got = %#v"+"\n", ${1:want}, ${2:got})${0}
 
-snippet t_fatale
+snippet tfatale
 options word
     t.Fatal(${1:err})
     ${0}

@@ -1,0 +1,39 @@
+snippet type_change
+abbr Sem Ver の MAJOR を上げる（後方互換性の無い変更）
+	change${1:#:(scope)}!: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_feat
+abbr Sem Ver の MINER を上げる（後方互換性を伴う機能追加）
+	feat${1:#:(scope)}${2:#:!}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_fix
+abbr Sem Ver の PATCH を上げる（後方互換性を伴うバグ修正）
+	fix${1:#:(scope)}${2:#:!}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_style
+abbr コード体裁の変更（抽象構文木に変更が発生しない）
+	style${1:#:(scope)}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_refactor
+abbr 既存機能の仕様変更としては現れない内部処理の変更
+	refactor${1:#:(scope)}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_docs
+abbr ドキュメントに関する追加・変更・削除
+	docs${1:#:(scope)}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_test
+abbr テストコード関する追加・変更・削除
+	test${1:#:(scope)}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_build
+abbr Makefile から派生するビルドプロセスやライブラリに関する追加・変更・削除
+	build${1:#:(scope)}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_ci
+abbr 継続的インテグレーションに関する追加・変更・削除
+	ci${1:#:(scope)}: ${3:#:(If applied, this commit will) Do something (#n)}
+
+snippet type_misc
+abbr 上記以外の追加・変更・削除（補助ツールなど）
+	misc${1:#:(scope)}: ${3:#:(If applied, this commit will) Do something (#n)}

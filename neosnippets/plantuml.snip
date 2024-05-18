@@ -1,0 +1,36 @@
+snippet start
+abbr 通常の plantuml
+	@startuml
+	!theme mars
+	top to bottom direction /' デフォルト: -- が垂直、- が水平になる '/
+	skinparam {
+	    dpi 150
+	    PackageStyle rectangle
+	}
+	skinparam PackageStyle rectangle
+
+	title ${0}
+
+	/'//  コンポーネント  ////////////////////////////////////////////////////////'/
+
+	/'//  コンポーネント間のリンク  //////////////////////////////////////////////'/
+	@enduml
+
+snippet start_usecase
+abbr ユースケース用
+	@startuml
+	!theme mars
+	left to right direction /' -- が水平、- が垂直になる '/
+	skinparam {
+	    dpi 200
+	    PackageStyle rectangle
+	}
+
+	title ユースケース図
+
+	actor ${1:ユーザ}
+
+	rectangle {
+	    $1 --- (${2:ユースケース})
+	}
+	@enduml

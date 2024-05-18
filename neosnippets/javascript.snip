@@ -1,3 +1,52 @@
+snippet greasemonkey
+alias monkey
+abbr Greasemonkey ボイラープレート
+options head
+	// [個人的GreaseMonkey頻用パタン #JavaScript - Qiita]
+	// https://qiita.com/cp3/items/03a658a32004211ce26c
+	//---  ヘルパー  ---------------------------------------------------------------
+	// second 秒待機する
+	const sleep = second => new Promise(resolve => setTimeout(resolve, second * 1000));
+
+	function log(str) {
+		console.log(str);
+	}
+
+	//---  やりたい処理の関数・変数定義  -------------------------------------------
+	// ここに直に書くと、DOM が読み込まれる前に実行されるので、
+	// addEventListener、関数、変数定義以外は記述しないこと。
+	// なぜなら作ってきた Greasemonkey スクリプトの大抵は特定ページの DOM に対
+	// して処理を行っているから。
+
+	let v1 = 0;
+
+	const f1 = async function () {
+		/*やりたいことの実装はここに書く*/
+	}
+
+	const f2 = async function () {
+		/*やりたいことの実装はここに書く*/
+	}
+
+	//---  処理のエントリーポイント  -----------------------------------------------
+	async function execFunction() {
+		// やりたいことの流れはここに記述する。
+		await f1(); // await キーワードついているものは上から順に実行される（同期処理）。
+		await f2();
+
+		// タイマー処理の登録もここで行う。
+		//指定時間後に実行する
+		var waitTime = 1000 * 60 * 3; // 1000 (millisec) * 60 (sec) * 3 = 3 分
+		setTimeout(f2, waitTime); // 3 分後に実行する
+
+		//指定時間間隔で実行する
+		var intervalTime = 1000 * 60 * 3; // 1000 (millisec) * 60 (sec) * 3 = 3 分
+		setInterval(f1, intervalTime); // 3 分間隔で f1 を実行する
+	}
+
+	// メイン処理の実行タイミングが window のロード時となるように登録する。
+	window.addEventListener('load', async function () { await execFunction() });
+
 snippet :f
 options head
   ${1:#:method_name}: function(${2:#:attribute}) {
@@ -202,4 +251,3 @@ snippet     import-default-member
 abbr        import defaultMember, { member, ... } from "module-name";
 options     head
   import ${1:defaultMember}, { ${2:MEMBERS} } from "${0:TARGET}";
-  
